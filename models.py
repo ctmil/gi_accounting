@@ -56,14 +56,15 @@ class account_invoice(models.Model):
                 context = self.env.context
                 uid = context.get('uid',False)
                 if uid and partner_id:
+			journal_type = context.get('journal_type','sale_refund')
                         user = self.env['res.users'].browse(uid)
 			point_of_sale = user.branch_id.point_of_sale
 			partner = self.env['res.partner'].browse(partner_id)
 			if partner.responsability_id:
 				resp_id = partner.responsability_id.id
 				resp = self.env['account.responsabilities.mapping'].search([('responsability_id','=',resp_id),\
-					('point_of_sale','=',point_of_sale)])
+					('point_of_sale','=',point_of_sale),('journal_type','=',journal_type)])
 				if resp:
-					res['values']['journal_id'] = resp.journal_id.id
+					res['value']['journal_id'] = resp.journal_id.id
 		return res
 		

@@ -36,8 +36,8 @@
                         <field name="name" />
                         <field name="responsability_id" />
                         <field name="journal_id" />
-                        <field name="journal_type" />
-                        <field name="point_of_sale" />
+                        <field name="journal_type" readonly="1"/>
+                        <field name="point_of_sale" readonly="1" />
                 </tree>
             </field>
         </record>
