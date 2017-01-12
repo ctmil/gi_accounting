@@ -4,7 +4,7 @@
     'version': '0.1',
     'depends': ['base','account','branches'],
     'data': [
-	#'account_view.xml',
+	'account_view.xml',
     ],
     'demo': [
     ],

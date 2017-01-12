@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+	<!-- account_voucher.view_vendor_receipt_dialog_form -->
+
+        <record id="res_branch_form_view_gi" model="ir.ui.view">
+            <field name="name">res.branch.form.gi</field>
+            <field name="model">res.branch</field>
+            <field name="inherit_id" ref="branches.res_branch_form" />
+            <field name="arch" type="xml">
+		<field name="name" position="after">
+		</field>
+	    </field>
+	</record>
+
+    </data>
+</openerp>

@@ -15,3 +15,4 @@ _logger = logging.getLogger(__name__)
 class res_branch(models.Model):
 	_inherit = 'res.branch'
 
+	point_of_sale = fields.Integer('Punto de Venta')
