@@ -45,6 +45,7 @@ class account_invoice(models.Model):
         _inherit = 'account.invoice'
 
 	point_of_sale = fields.Integer('Punto de Venta')
+	is_debit_note = fields.Boolean('Nota de Debito',related='journal_id.is_debit_note')
 
         @api.model
         def create(self, vals):
