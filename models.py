@@ -15,4 +15,10 @@ _logger = logging.getLogger(__name__)
 class res_branch(models.Model):
 	_inherit = 'res.branch'
 
+	@api.one
+	@api.constraint('point_of_sale')
+	def _check_unique_constraint(self):
+        	if len(self.search(['point_of_sale', '=', self.point_of_sale])) > 1:
+                	raise ValidationError("Punto de venta ya existente")
+
 	point_of_sale = fields.Integer('Punto de Venta')
