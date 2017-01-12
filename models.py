@@ -12,6 +12,12 @@ from dateutil import relativedelta
 #Get the logger
 _logger = logging.getLogger(__name__)
 
+class account_journal(models.Model):
+	_inherit = 'account.journal'
+
+	is_debit_note = fields.Boolean('Nota de Debito')
+
+
 class res_branch(models.Model):
 	_inherit = 'res.branch'
 
