@@ -61,7 +61,7 @@ class account_invoice(models.Model):
 			partner = self.env['res.partner'].browse(partner_id)
 			if partner.responsability_id:
 				resp_id = partner.responsability_id.id
-				resp = self.env['account.responsabilities.mapping'].searcha([('responsability_id','=',resp_id),\
+				resp = self.env['account.responsabilities.mapping'].search([('responsability_id','=',resp_id),\
 					('point_of_sale','=',point_of_sale)])
 				if resp:
 					res['values']['journal_id'] = resp.journal_id.id
