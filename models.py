@@ -38,6 +38,7 @@ class account_responsabilities_mapping(models.Model):
 	journal_id = fields.Many2one('account.journal',string='Diario',domain=[('type','in',['sale','sale_refund'])])
 	journal_type = fields.Selection(selection=[('sale', 'Sale'),('sale_refund','Sale Refund')],related='journal_id.type')
 	point_of_sale = fields.Integer('Point of Sale',related='journal_id.point_of_sale')
+	is_debit_note = fields.Boolean('Nota de Debito',related='journal_id.is_debit_note')
 
 
 class account_invoice(models.Model):
@@ -63,13 +64,15 @@ class account_invoice(models.Model):
                 uid = context.get('uid',False)
                 if uid and partner_id:
 			journal_type = context.get('journal_type','sale_refund')
+			debit_note = context.get('debit_note',False)
                         user = self.env['res.users'].browse(uid)
 			point_of_sale = user.branch_id.point_of_sale
 			partner = self.env['res.partner'].browse(partner_id)
 			if partner.responsability_id:
 				resp_id = partner.responsability_id.id
 				resp = self.env['account.responsabilities.mapping'].search([('responsability_id','=',resp_id),\
-					('point_of_sale','=',point_of_sale),('journal_type','=',journal_type)])
+					('point_of_sale','=',point_of_sale),('journal_type','=',journal_type),\
+					('is_debit_note','=',debit_note)])
 				if resp:
 					res['value']['journal_id'] = resp.journal_id.id
 		return res
