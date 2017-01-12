@@ -81,7 +81,7 @@
         <record id="action_invoice_tree_nd_view2" model="ir.actions.act_window.view">
             <field eval="2" name="sequence"/>
             <field name="view_mode">form</field>
-            <field name="view_id" ref="invoice_form"/>
+            <field name="view_id" ref="account.invoice_form"/>
             <field name="act_window_id" ref="action_invoice_tree_nd"/>
         </record>
 
