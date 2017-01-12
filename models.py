@@ -23,6 +23,16 @@ class res_branch(models.Model):
 
 	point_of_sale = fields.Integer('Punto de Venta')
 
+class account_responsabilities_mapping(models.Model):
+	_name = 'account.responsabilities.mapping'
+	_description = 'Mapping de responsabilidades'
+
+	name = fields.Char('Nombre')
+	responsability_id = fields.Many2one('afip.responsability',string='Responsabilidad AFIP',required=True)
+	journal_id = fields.Many2one('account.journal',string='Diario',domain=[('type','in',['sale','sale_refund'])])
+	journal_type = fields.Selection(selection=[('sale', 'Sale'),('sale_refund','Sale Refund')],related='journal_id.type')
+
+
 class account_invoice(models.Model):
         _inherit = 'account.invoice'
 
@@ -38,3 +48,14 @@ class account_invoice(models.Model):
                                 vals['point_of_sale'] = user.branch_id.point_of_sale
                 return super(account_invoice,self).create(vals)
 
+	@api.multi
+	def onchange_partner_id(self, type, partner_id, date_invoice=False,payment_term=False,\
+		 partner_bank_id=False, company_id=False):
+		res = super(account_invoice, self).onchange_partner_id(type,partner_id,date_invoice,payment_term,partner_bank_id,company_id)
+                context = self.env.context
+                uid = context.get('uid',False)
+                if uid:
+                        user = self.env['res.users'].browse(uid)
+				
+		return res
+		

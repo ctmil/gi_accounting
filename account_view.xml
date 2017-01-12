@@ -24,11 +24,50 @@
                 <field name="journal_id" position="after">
                         <field name="point_of_sale" readonly="1"/>
                 </field>
-                <field name="journal_id" position="attributes">
-			<field name="domain">[('point_of_sale','=',point_of_sale)]</field>
-		</field>
             </field>
         </record>
+
+
+        <record id="account_responsabilities_mapping_tree_view" model="ir.ui.view">
+            <field name="name">account.responsabilities.mapping.tree</field>
+            <field name="model">account.responsabilities.mapping</field>
+            <field name="arch" type="xml">
+                <tree string="Responsabilidades Fiscales" >
+                        <field name="name" />
+                        <field name="responsability_id" />
+                        <field name="journal_id" />
+                        <field name="journal_type" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="account_responsabilities_mapping_form_view" model="ir.ui.view">
+            <field name="name">account.responsabilities.mapping.form</field>
+            <field name="model">account.responsabilities.mapping</field>
+            <field name="arch" type="xml">
+                <form string="Responsabilidades Fiscales" >
+			<group>
+	                        <field name="name" />
+	                        <field name="responsability_id" />
+	                        <field name="journal_id" />
+	                        <field name="journal_type" />
+			</group>
+                </form>
+            </field>
+        </record>
+
+
+
+        <record id="action_resp_mapping" model="ir.actions.act_window">
+            <field name="name">Responsabilidades Fiscles</field>
+            <field name="res_model">account.responsabilities.mapping</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem action="action_resp_mapping" id="menu_resp_mapping" 
+                parent="account.menu_configuration_misc" sequence="3" />
+
 
 
     </data>
