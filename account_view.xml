@@ -9,6 +9,9 @@
             <field name="inherit_id" ref="branches.res_branch_form_view" />
             <field name="arch" type="xml">
 		<field name="name" position="after">
+			<group>	
+				<field name="point_of_sale" />
+			</group>
 		</field>
 	    </field>
 	</record>
