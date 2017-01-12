@@ -72,6 +72,20 @@
         <menuitem action="action_resp_mapping" id="menu_resp_mapping" 
                 parent="account.menu_configuration_misc" sequence="3" />
 
+        <record id="action_invoice_tree_nd_view1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="act_window_id" ref="action_invoice_tree_nd"/>
+        </record>
+
+        <record id="action_invoice_tree_nd_view2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="invoice_form"/>
+            <field name="act_window_id" ref="action_invoice_tree_nd"/>
+        </record>
+
+
         <record id="action_invoice_tree_nd" model="ir.actions.act_window">
             <field name="name">Notas de Debito</field>
             <field name="res_model">account.invoice</field>
