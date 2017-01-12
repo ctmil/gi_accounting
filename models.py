@@ -22,3 +22,19 @@ class res_branch(models.Model):
                 	raise ValidationError("Punto de venta ya existente")
 
 	point_of_sale = fields.Integer('Punto de Venta')
+
+class account_invoice(models.Model):
+        _inherit = 'account.invoice'
+
+	point_of_sale = fields.Integer('Punto de Venta')
+
+        @api.model
+        def create(self, vals):
+                context = self.env.context
+                uid = context.get('uid',False)
+                if uid:
+                        user = self.env['res.users'].browse(uid)
+                        if user.branch_id:
+                                vals['point_of_sale'] = user.branch_id.point_of_sale
+                return super(account_invoice,self).create(vals)
+
