@@ -55,8 +55,15 @@ class account_invoice(models.Model):
 		res = super(account_invoice, self).onchange_partner_id(type,partner_id,date_invoice,payment_term,partner_bank_id,company_id)
                 context = self.env.context
                 uid = context.get('uid',False)
-                if uid:
+                if uid and partner_id:
                         user = self.env['res.users'].browse(uid)
-				
+			point_of_sale = user.branch_id.point_of_sale
+			partner = self.env['res.partner'].browse(partner_id)
+			if partner.responsability_id:
+				resp_id = partner.responsability_id.id
+				resp = self.env['account.responsabilities.mapping'].searcha([('responsability_id','=',resp_id),\
+					('point_of_sale','=',point_of_sale)])
+				if resp:
+					res['values']['journal_id'] = resp.journal_id.id
 		return res
 		
