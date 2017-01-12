@@ -6,7 +6,7 @@
         <record id="res_branch_form_view_gi" model="ir.ui.view">
             <field name="name">res.branch.form.gi</field>
             <field name="model">res.branch</field>
-            <field name="inherit_id" ref="branches.res_branch_form" />
+            <field name="inherit_id" ref="branches.res_branch_form_view" />
             <field name="arch" type="xml">
 		<field name="name" position="after">
 		</field>
