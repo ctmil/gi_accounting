@@ -37,6 +37,7 @@
                         <field name="responsability_id" />
                         <field name="journal_id" />
                         <field name="journal_type" />
+                        <field name="point_of_sale" />
                 </tree>
             </field>
         </record>
@@ -51,6 +52,7 @@
 	                        <field name="responsability_id" />
 	                        <field name="journal_id" />
 	                        <field name="journal_type" />
+	                        <field name="point_of_sale" />
 			</group>
                 </form>
             </field>

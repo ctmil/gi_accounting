@@ -31,6 +31,7 @@ class account_responsabilities_mapping(models.Model):
 	responsability_id = fields.Many2one('afip.responsability',string='Responsabilidad AFIP',required=True)
 	journal_id = fields.Many2one('account.journal',string='Diario',domain=[('type','in',['sale','sale_refund'])])
 	journal_type = fields.Selection(selection=[('sale', 'Sale'),('sale_refund','Sale Refund')],related='journal_id.type')
+	point_of_sale = fields.Integer('Point of Sale',related='journal_id.point_of_sale')
 
 
 class account_invoice(models.Model):
