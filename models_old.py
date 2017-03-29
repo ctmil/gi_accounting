@@ -41,7 +41,7 @@ class sale_order(models.Model):
         	company_id = invoice_vals['company_id']
 
 		partner = partner_obj.browse(cr,uid,partner_id)
-		import pdb;pdb.set_trace()
+		#import pdb;pdb.set_trace()
 
 	        #journal_ids = partner_obj.prefered_journals(
         	#    cr, uid, [partner_id], 'out_invoice',
