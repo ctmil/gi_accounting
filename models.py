@@ -80,17 +80,39 @@ class account_invoice(models.Model):
 					res['value']['journal_id'] = resp.journal_id.id
 		return res
 		
-class account_movimientos_caja(models.TransientModel):
+class account_movimientos_caja(models.Model):
 	_name = 'account.movimientos.caja'
 	_description = 'Movimientos de caja'
+
+	@api.one
+	def compute_account_movimientos_caja(self):
+		for journal in self.journal_ids:
+			account_move_lines = self.env['account.move.line'].search([('journal_id','=',journal.id),('date','=',self.date)])
+			for account_move_line in account_move_lines:
+				vals = {
+					'caja_journal_id': journal.id,		
+					'account_move_line_id': account_move_line.id
+					}	
+				return_id = self.env['account.movimientos.caja.journal.lineas'].create(vals)
+		import pdb;pdb.set_trace()
+	        return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
+
 
 	date = fields.Date('Fecha a reportar',default=date.today(),required=True)
 	journal_ids = fields.One2many(comodel_name='account.movimientos.caja.journal',inverse_name='caja_id')
 
 
-class account_movimientos_caja_journal(models.TransientModel):
+class account_movimientos_caja_journal(models.Model):
 	_name = 'account.movimientos.caja.journal'
 	_description = 'Movimientos de caja journal'
 
 	caja_id = fields.Many2one('account.movimientos.caja')
 	journal_id = fields.Many2one('account.journal',string="Métodos de Pago",domain=['|',('type','=','cash'),('type','=','bank')])
+	move_lines = fields.One2many(comodel_name='account.movimientos.caja.journal.lineas',inverse_name='caja_journal_id')
+
+class account_movimientos_caja_journal_lineas(models.Model):
+	_name = 'account.movimientos.caja.journal.lineas'
+	_description = 'Movimientos de caja journal lineas'
+
+	caja_journal_id = fields.Many2one('account.movimientos.caja.journal')
+	account_move_line_id = fields.Many2one('account.move.line')

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        
+	<report 
+            id="report_account_movimientos_caja"
+            model="account.movimientos.caja"
+            string="Movimientos de Caja"
+            report_type="qweb-pdf"
+            name="gi_accounting.report_movimientos_caja"
+            file="gi_accounting.report_movimientos_caja"
+        />
+
+    </data>
+</openerp>

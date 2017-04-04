@@ -19,7 +19,8 @@
 #
 ##############################################################################
 
-from openerp import models, api
+from openerp.osv import osv,fields
+from openerp import models, api, tools
 from openerp.exceptions import Warning
 
 
@@ -66,4 +67,28 @@ class sale_order(models.Model):
 	        return invoice_vals
 
 sale_order()
+
+
+
+class account_move_line_day(osv.osv):
+        _name = "account.move.line.date"
+        _description = "Account Move Line Date"
+        _auto = False
+
+        _columns = {
+                'account_id': fields.many2one('account.account','Product'),
+                'date': fields.date('Date'),
+                'state': fields.char('State'),
+                'debit': fields.float('Debit'),
+                'credit': fields.float('Credit'),
+                }
+
+        def init(self, cr):
+                tools.sql.drop_view_if_exists(cr, 'account_move_line_date')
+                cr.execute("""
+                        create view account_move_line_date as 
+				select max(a.id) as id,a.account_id as account_id,a.date as date,a.state,
+					sum(a.debit) as debit,sum(a.credit) as credit from account_move_line a
+					group by 2,3,4
+                        """)
 
