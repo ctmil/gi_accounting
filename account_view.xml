@@ -126,7 +126,44 @@
 		</field>
 	    </field>
 	</record>
-	
+
+	<!-- A partir de aca -->
+
+        <record id="account_movimientos_caja_view" model="ir.ui.view">
+            <field name="name">Movimientos de Caja</field>
+            <field name="model">account.movimientos.caja</field>
+            <field name="arch" type="xml">
+		<form string="Listado de movimientos de caja">
+			<group>
+				<field name="date" />
+				<field name="journal_ids">
+					<tree string="Métodos de Pago" editable="bottom" >
+						<field name="journal_id" /> 
+					</tree>
+				</field>
+			</group>
+		</form>
+            </field>
+        </record>
+
+        <record id="action_account_movimientos_caja" model="ir.actions.act_window">
+            <field name="name">Movimientos de Caja</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">account.movimientos.caja</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="view_id" ref="account_movimientos_caja_view"/>
+        </record>
+
+        <menuitem
+            name="Movimientos de Caja"
+            parent="account.menu_journals_report"
+            action="action_account_movimientos_caja"
+            id="menu_account_movimientos_caja"
+            icon="STOCK_PRINT"/>
+
+	<!-- Fin a partir de aca -->
 
     </data>
 </openerp>

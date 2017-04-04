@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from openerp import models, fields, api, _
 from openerp.osv import osv
 from openerp.exceptions import except_orm, ValidationError
@@ -78,3 +80,17 @@ class account_invoice(models.Model):
 					res['value']['journal_id'] = resp.journal_id.id
 		return res
 		
+class account_movimientos_caja(models.TransientModel):
+	_name = 'account.movimientos.caja'
+	_description = 'Movimientos de caja'
+
+	date = fields.Date('Fecha a reportar',default=date.today(),required=True)
+	journal_ids = fields.One2many(comodel_name='account.movimientos.caja.journal',inverse_name='caja_id')
+
+
+class account_movimientos_caja_journal(models.TransientModel):
+	_name = 'account.movimientos.caja.journal'
+	_description = 'Movimientos de caja journal'
+
+	caja_id = fields.Many2one('account.movimientos.caja')
+	journal_id = fields.Many2one('account.journal',string="Métodos de Pago",domain=['|',('type','=','cash'),('type','=','bank')])
