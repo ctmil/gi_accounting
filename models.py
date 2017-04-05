@@ -86,20 +86,33 @@ class account_movimientos_caja(models.Model):
 
 	@api.one
 	def compute_account_movimientos_caja(self):
-		import pdb;pdb.set_trace()
 		account_move_lines = self.env['account.move.line'].search([('date','=',self.date)])
 		for move_line in account_move_lines:	
 			if move_line.journal_id.type in ['cash','bank']:
-				if debit > 0 and move_line.invoice:
+				if move_line.debit > 0 and move_line.partner_id:
+					account_move = move_line.move_id
+					credit_line = None
+					invoice_id = None
+					invoices = self.env['account.invoice'].search([('partner_id','=',move_line.partner_id.id),\
+						('state','in',['open','paid']),('date_invoice','<=',self.date)])
+					for invoice in invoices:
+						for payment_line in invoice.payment_ids:
+							if payment_line.move_id.id == move_line.move_id.id:
+								invoice_id = invoice.id
+								break
+						if invoice_id:
+							break		
 					vals = {
 						'caja_id': self.id,		
-						'caja_journal_id': journal.id,		
-						'account_move_line_id': account_move_line.id,
+						'caja_journal_id': move_line.journal_id.id,		
+						'account_move_line_id': move_line.id,
 						'account_id': move_line.account_id.id,
-						'invoice': move_line.invoice.id,
+						'partner_id': move_line.partner_id.id,
 						'debit': move_line.debit,
-						}	
-					return_id = self.env['account.movimientos.caja.journal.lineas'].create(vals)
+						}
+					if invoice_id:
+						vals['invoice'] = invoice_id
+					return_id = self.env['account.caja.diaria.journal.lineas'].create(vals)
 		#import pdb;pdb.set_trace()
 	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
 
@@ -117,4 +130,5 @@ class account_caja_diaria_journal_lineas(models.Model):
 	account_move_line_id = fields.Many2one('account.move.line',string='Mov Contable')
 	account_id = fields.Many2one('account.account',string='Cuenta Contable')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
+	invoice = fields.Many2one('account.invoice',string='Factura')
 	debit = fields.Float('Débito')	

@@ -147,6 +147,7 @@
 						<field name="account_move_line_id" /> 
 						<field name="account_id" /> 
 						<field name="partner_id" /> 
+						<field name="invoice" /> 
 						<field name="debit" /> 
 					</tree>
 				</field>
