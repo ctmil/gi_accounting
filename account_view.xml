@@ -129,20 +129,25 @@
 
 	<!-- A partir de aca -->
 
-        <record id="account_movimientos_caja_view" model="ir.ui.view">
-            <field name="name">Movimientos de Caja</field>
-            <field name="model">account.movimientos.caja</field>
+        <record id="account_caja_diaria_view" model="ir.ui.view">
+            <field name="name">Caja Diaria Form</field>
+            <field name="model">account.caja.diaria</field>
             <field name="arch" type="xml">
 		<form string="Listado de movimientos de caja">
 			<header>
-				<button name="compute_movimientos_caja" type="object"
+				<button name="compute_account_movimientos_caja" type="object"
 					string="Generar" class="oe_default" />
 			</header>
 			<group>
 				<field name="date" />
-				<field name="journal_ids">
-					<tree string="Métodos de Pago" editable="bottom" >
-						<field name="journal_id" /> 
+				<field name="branch_id" />
+				<field name="line_ids">
+					<tree string="Movimientos" >
+						<field name="caja_journal_id" /> 
+						<field name="account_move_line_id" /> 
+						<field name="account_id" /> 
+						<field name="partner_id" /> 
+						<field name="debit" /> 
 					</tree>
 				</field>
 			</group>
@@ -150,21 +155,32 @@
             </field>
         </record>
 
-        <record id="action_account_movimientos_caja" model="ir.actions.act_window">
-            <field name="name">Movimientos de Caja</field>
+        <record id="account_caja_diaria_tree" model="ir.ui.view">
+            <field name="name">Caja Diaria Tree</field>
+            <field name="model">account.caja.diaria</field>
+            <field name="arch" type="xml">
+		<tree string="Cajas Diarias">
+			<field name="date" />
+			<field name="branch_id" />
+		</tree>
+            </field>
+        </record>
+
+        <record id="action_account_caja_diaria" model="ir.actions.act_window">
+            <field name="name">Cajas Diarias</field>
             <field name="type">ir.actions.act_window</field>
-            <field name="res_model">account.movimientos.caja</field>
+            <field name="res_model">account.caja.diaria</field>
             <field name="view_type">form</field>
-            <field name="view_mode">form</field>
-            <field name="target">new</field>
-            <field name="view_id" ref="account_movimientos_caja_view"/>
+            <field name="view_mode">tree,form</field>
+            <!-- field name="target">new</field -->
+            <!-- field name="view_id" ref="account_caja_diaria_view"/ -->
         </record>
 
         <menuitem
-            name="Movimientos de Caja"
+            name="Cajas Diarias"
             parent="account.menu_finance_receivables"
-            action="action_account_movimientos_caja"
-            id="menu_account_movimientos_caja"
+            action="action_account_caja_diaria"
+            id="menu_account_caja_diaria"
             icon="STOCK_PRINT"/>
 
 	<!-- Fin a partir de aca -->

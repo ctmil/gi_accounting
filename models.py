@@ -81,38 +81,40 @@ class account_invoice(models.Model):
 		return res
 		
 class account_movimientos_caja(models.Model):
-	_name = 'account.movimientos.caja'
-	_description = 'Movimientos de caja'
+	_name = 'account.caja.diaria'
+	_description = 'Caja Diaria'
 
 	@api.one
 	def compute_account_movimientos_caja(self):
-		for journal in self.journal_ids:
-			account_move_lines = self.env['account.move.line'].search([('journal_id','=',journal.id),('date','=',self.date)])
-			for account_move_line in account_move_lines:
-				vals = {
-					'caja_journal_id': journal.id,		
-					'account_move_line_id': account_move_line.id
-					}	
-				return_id = self.env['account.movimientos.caja.journal.lineas'].create(vals)
 		import pdb;pdb.set_trace()
-	        return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
+		account_move_lines = self.env['account.move.line'].search([('date','=',self.date)])
+		for move_line in account_move_lines:	
+			if move_line.journal_id.type in ['cash','bank']:
+				if debit > 0 and move_line.invoice:
+					vals = {
+						'caja_id': self.id,		
+						'caja_journal_id': journal.id,		
+						'account_move_line_id': account_move_line.id,
+						'account_id': move_line.account_id.id,
+						'invoice': move_line.invoice.id,
+						'debit': move_line.debit,
+						}	
+					return_id = self.env['account.movimientos.caja.journal.lineas'].create(vals)
+		#import pdb;pdb.set_trace()
+	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
 
 
-	date = fields.Date('Fecha a reportar',default=date.today(),required=True)
-	journal_ids = fields.One2many(comodel_name='account.movimientos.caja.journal',inverse_name='caja_id')
+	date = fields.Date('Fecha',default=date.today(),required=True)
+	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
+	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 
-
-class account_movimientos_caja_journal(models.Model):
-	_name = 'account.movimientos.caja.journal'
-	_description = 'Movimientos de caja journal'
-
-	caja_id = fields.Many2one('account.movimientos.caja')
-	journal_id = fields.Many2one('account.journal',string="Métodos de Pago",domain=['|',('type','=','cash'),('type','=','bank')])
-	move_lines = fields.One2many(comodel_name='account.movimientos.caja.journal.lineas',inverse_name='caja_journal_id')
-
-class account_movimientos_caja_journal_lineas(models.Model):
-	_name = 'account.movimientos.caja.journal.lineas'
+class account_caja_diaria_journal_lineas(models.Model):
+	_name = 'account.caja.diaria.journal.lineas'
 	_description = 'Movimientos de caja journal lineas'
 
-	caja_journal_id = fields.Many2one('account.movimientos.caja.journal')
-	account_move_line_id = fields.Many2one('account.move.line')
+	caja_id = fields.Many2one('account.caja.diaria',string='Caja')
+	caja_journal_id = fields.Many2one('account.journal',string='Método de Pago')
+	account_move_line_id = fields.Many2one('account.move.line',string='Mov Contable')
+	account_id = fields.Many2one('account.account',string='Cuenta Contable')
+	partner_id = fields.Many2one('res.partner',string='Cliente')
+	debit = fields.Float('Débito')	
