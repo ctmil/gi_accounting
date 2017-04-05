@@ -3,9 +3,9 @@
     <data>
         
 	<report 
-            id="report_account_movimientos_caja"
-            model="account.movimientos.caja"
-            string="Movimientos de Caja"
+            id="report_account_caja_diaria"
+            model="account.caja.diaria"
+            string="Caja Diaria"
             report_type="qweb-pdf"
             name="gi_accounting.report_movimientos_caja"
             file="gi_accounting.report_movimientos_caja"
