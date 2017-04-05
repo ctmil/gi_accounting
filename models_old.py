@@ -92,3 +92,25 @@ class account_move_line_day(osv.osv):
 					group by 2,3,4
                         """)
 
+
+class account_caja_diaria_journal_view(osv.osv):
+        _name = "account.caja.diaria.journal.view"
+        _description = "Account Caja Diaria Journal Vie"
+        _auto = False
+
+        _columns = {
+                'caja_id': fields.many2one('account.caja.diaria','Caja'),
+                'journal_id': fields.many2one('account.journal','Método de Pago'),
+                'debit': fields.float('Qty'),
+                }
+
+        def init(self, cr):
+                tools.sql.drop_view_if_exists(cr, 'account_caja_diaria_journal_view')
+                cr.execute("""
+                        create view account_caja_diaria_journal_view as 
+                                select max(a.id) as id,a.caja_id as caja_id,a.caja_journal_id as journal_id,
+					sum(debit) as debit
+                                        from account_caja_diaria_journal_lineas a group by 2,3
+                        """)
+
+

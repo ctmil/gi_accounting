@@ -2,14 +2,20 @@
 <openerp>
     <data>
         
-	<report 
+	<!-- report 
             id="report_account_caja_diaria"
             model="account.caja.diaria"
             string="Caja Diaria"
             report_type="qweb-pdf"
             name="gi_accounting.report_movimientos_caja"
             file="gi_accounting.report_movimientos_caja"
-        />
+        / -->
+	<report 
+            id="report_account_caja_diaria_v1"
+            model="account.caja.diaria"
+            string="Caja Diaria v1"
+            report_type="qweb-pdf"
+            name="gi_accounting.report_movimientos_caja" />
 
     </data>
 </openerp>

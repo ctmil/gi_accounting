@@ -80,9 +80,14 @@ class account_invoice(models.Model):
 					res['value']['journal_id'] = resp.journal_id.id
 		return res
 		
-class account_movimientos_caja(models.Model):
+class account_caja_diaria(models.Model):
 	_name = 'account.caja.diaria'
 	_description = 'Caja Diaria'
+
+	@api.one
+	def open_account_movimientos_caja(self):
+		self.state = 'open'
+
 
 	@api.one
 	def compute_account_movimientos_caja(self):
@@ -113,13 +118,23 @@ class account_movimientos_caja(models.Model):
 					if invoice_id:
 						vals['invoice'] = invoice_id
 					return_id = self.env['account.caja.diaria.journal.lineas'].create(vals)
+		self.state = 'done'
 		#import pdb;pdb.set_trace()
 	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
 
 
+	@api.model
+	def create(self,vals):
+		user = self.env['res.users'].browse(self.env.context['uid'])
+		vals['partner_id'] = user.partner_id.id
+	        return super(account_caja_diaria, self).create(vals)
+		
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
+	partner_id = fields.Many2one('res.partner',string='Cliente')
 	date = fields.Date('Fecha',default=date.today(),required=True)
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
+	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal.view',inverse_name='caja_id')
 
 class account_caja_diaria_journal_lineas(models.Model):
 	_name = 'account.caja.diaria.journal.lineas'

@@ -135,14 +135,23 @@
             <field name="arch" type="xml">
 		<form string="Listado de movimientos de caja">
 			<header>
+				<button name="open_account_movimientos_caja" type="object"
+					string="Abrir" class="oe_default" states="draft" />
 				<button name="compute_account_movimientos_caja" type="object"
-					string="Generar" class="oe_default" />
+					string="Cerrar" class="oe_default" states="open" />
+				<field  name="state" widget="statusbar" />
 			</header>
 			<group>
 				<field name="date" />
 				<field name="branch_id" />
+				<field name="journal_ids">
+					<tree string="Métodos de Pago" readonly="1">
+						<field name="journal_id" string="Método de Pago" />
+						<field name="debit" string="Monto" />
+					</tree>
+				</field>
 				<field name="line_ids">
-					<tree string="Movimientos" >
+					<tree string="Movimientos" readonly="1">
 						<field name="caja_journal_id" /> 
 						<field name="account_move_line_id" /> 
 						<field name="account_id" /> 
@@ -163,6 +172,7 @@
 		<tree string="Cajas Diarias">
 			<field name="date" />
 			<field name="branch_id" />
+			<field name="state" />
 		</tree>
             </field>
         </record>
