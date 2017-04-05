@@ -136,6 +136,11 @@ class account_caja_diaria(models.Model):
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal.view',inverse_name='caja_id')
 
+	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
+
+
+
+
 class account_caja_diaria_journal_lineas(models.Model):
 	_name = 'account.caja.diaria.journal.lineas'
 	_description = 'Movimientos de caja journal lineas'
