@@ -17,6 +17,16 @@ _logger = logging.getLogger(__name__)
 class account_journal(models.Model):
 	_inherit = 'account.journal'
 
+	@api.model
+	def _get_account_balance(self,date):
+		return_value = 0
+		yesterday = fields.Date.from_string(date) - timedelta(days=1)
+		account_lines = self.env['account.move.line.date'].search([('account_id','=',self.default_debit_account_id.id),('date','<=',yesterday)])
+		for account_line in account_lines:
+			return_value = return_value + (account_line.debit - account_line.credit)
+		return return_value
+
+
 	is_debit_note = fields.Boolean('Nota de Debito')
 
 
@@ -92,6 +102,7 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def compute_account_movimientos_caja(self):
 		account_move_lines = self.env['account.move.line'].search([('date','=',self.date)])
+		journal_amounts = {}
 		for move_line in account_move_lines:	
 			if move_line.journal_id.type in ['cash','bank']:
 				if move_line.debit > 0 and move_line.partner_id:
@@ -117,8 +128,20 @@ class account_caja_diaria(models.Model):
 						}
 					if invoice_id:
 						vals['invoice'] = invoice_id
+					#saldo = move_line.journal_id._get_account_balance(self.date)
+					journal_amount = journal_amounts.get(move_line.journal_id.id,0)
+					journal_amounts[move_line.journal_id.id] = journal_amount + move_line.debit
 					return_id = self.env['account.caja.diaria.journal.lineas'].create(vals)
 		self.state = 'done'
+		for key, value in journal_amounts.iteritems():
+			vals = {
+				'caja_id': self.id,
+				'journal_id': key,
+				'debit': value,
+				}
+			journal = self.env['account.journal'].browse(key)
+			vals['previous_balance'] = journal._get_account_balance(self.date)
+			return_id = self.env['account.caja.diaria.journal'].create(vals)
 		#import pdb;pdb.set_trace()
 	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
 
@@ -134,10 +157,20 @@ class account_caja_diaria(models.Model):
 	date = fields.Date('Fecha',default=date.today(),required=True)
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
-	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal.view',inverse_name='caja_id')
+	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
 
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
+class account_caja_diaria_journal(models.Model):
+	_name = 'account.caja.diaria.journal'
+	_description = 'Sumarized table for journals'
+
+	caja_id = fields.Many2one('account.caja.diaria')
+	journal_id = fields.Many2one('account.journal')
+	debit = fields.Float('Débitos')
+	debit = fields.Float('Créditos')
+	previous_balance = fields.Float('Saldo Anterior')
+	end_balance = fields.Float('Saldo Final')
 
 
 
