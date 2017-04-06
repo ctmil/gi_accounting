@@ -20,7 +20,6 @@ class account_journal(models.Model):
 	@api.model
 	def _get_account_balance(self,date):
 		return_value = 0
-		yesterday = fields.Date.from_string(date) - timedelta(days=1)
 		account_lines = self.env['account.move.line.date'].search([('account_id','=',self.default_debit_account_id.id),('date','<=',yesterday)])
 		for account_line in account_lines:
 			return_value = return_value + (account_line.debit - account_line.credit)
@@ -140,7 +139,9 @@ class account_caja_diaria(models.Model):
 				'debit': value,
 				}
 			journal = self.env['account.journal'].browse(key)
-			vals['previous_balance'] = journal._get_account_balance(self.date)
+			yesterday = fields.Date.from_string(date) - timedelta(days=1)
+			vals['previous_balance'] = journal._get_account_balance(yesterday)
+			vals['end_balance'] = journal._get_account_balance(self.date)
 			return_id = self.env['account.caja.diaria.journal'].create(vals)
 		#import pdb;pdb.set_trace()
 	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')

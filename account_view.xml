@@ -147,8 +147,9 @@
 				<field name="journal_ids">
 					<tree string="Métodos de Pago" readonly="1">
 						<field name="journal_id" string="Método de Pago" />
-						<field name="debit" string="Monto" />
 						<field name="previous_balance" string="Saldo Anterior" />
+						<field name="debit" string="Monto" />
+						<field name="end_balance" string="Saldo Final" />
 					</tree>
 				</field>
 				<field name="line_ids">
