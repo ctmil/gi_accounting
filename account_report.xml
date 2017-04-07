@@ -1,21 +1,133 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0"?>
 <openerp>
-    <data>
-        
-	<!-- report 
-            id="report_account_caja_diaria"
-            model="account.caja.diaria"
-            string="Caja Diaria"
-            report_type="qweb-pdf"
-            name="gi_accounting.report_movimientos_caja"
-            file="gi_accounting.report_movimientos_caja"
-        / -->
-	<report 
-            id="report_account_caja_diaria_v1"
-            model="account.caja.diaria"
-            string="Caja Diaria v1"
-            report_type="qweb-pdf"
-            name="gi_accounting.report_movimientos_caja" />
+	<data>	
+		<report id="report_account_caja_diaria_action"
+			string="Caja Diaria"
+			model="account.caja.diaria"
+			report_type="qweb-pdf"
+			name="gi_accounting.report_account_caja_diaria_template"
+			/>
 
-    </data>
+		<template id="report_account_caja_diaria_template">
+			<t t-call="report.html_container">
+				<t t-foreach="docs" t-as="o">
+					<t t-call="report.external_layout">
+						<div class="page">
+							<!-- Report page content -->
+							<div class="row">
+								<div class="col-xs-12">
+									<h1>Caja Diaria <span t-field="o.date" /> - Punto de Venta <span t-field="o.branch_id.name" /></h1>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-12">
+									<h2>Métodos de Pago</h2>	
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-12">
+									<table class="table table-condensed">
+										<thead>
+											<th>Método de Pago</th>
+											<th>Saldo Inicial</th>
+											<th>Débitos</th>
+											<th>Créditos</th>
+											<th>Saldo Final</th>
+										</thead>
+										<tbody class="sale_tbody">
+								                    <tr t-foreach="o.journal_ids" t-as="j">
+								                        <td>
+									                          <span t-field="j.journal_id.name"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="j.previous_balance"
+													t-field-options='{"widget": "monetary", 
+														"display_currency": "j.journal_id.company_id.currency_id"}'/>
+								                        </td>
+								                        <td>
+									                          <span t-field="j.debit"
+													t-field-options='{"widget": "monetary", 
+														"display_currency": "j.journal_id.company_id.currency_id"}'/>
+								                        </td>
+								                        <td>
+									                          <span t-field="j.credit"
+													t-field-options='{"widget": "monetary", 
+														"display_currency": "j.journal_id.company_id.currency_id"}'/>
+								                        </td>
+								                        <td>
+									                          <span t-field="j.end_balance"
+													t-field-options='{"widget": "monetary", 
+														"display_currency": "j.journal_id.company_id.currency_id"}'/>
+								                        </td>
+										    </tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-12">
+									<h2>Transacciones</h2>	
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-12">
+									<table class="table table-condensed">
+										<thead>
+											<th>Método de Pago</th>
+											<th>Mov Contable</th>
+											<th>Cuenta Contable</th>
+											<th>Cliente</th>
+											<th>Fáctura</th>
+											<th>Tipo Fact.</th>
+											<th>Cupón</th>
+											<th>Débito</th>
+											<th>Crédito</th>
+										</thead>
+										<tbody class="sale_tbody">
+								                    <tr t-foreach="o.line_ids" t-as="l">
+								                        <td>
+									                          <span t-field="l.caja_journal_id.name"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.account_move_line_id.name"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.account_id.name"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.partner_id.name"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.invoice.number"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.invoice.type"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.cupon"/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.debit" 
+													t-field-options='{"widget": "monetary", 
+														"display_currency": "l.account_move_line_id.company_id.currency_id"}'/>
+								                        </td>
+								                        <td>
+									                          <span t-field="l.credit" 
+													t-field-options='{"widget": "monetary", 
+														"display_currency": "l.account_move_line_id.company_id.currency_id"}'/>
+								                        </td>
+										    </tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+				
+				
+						</div>
+					</t>
+				</t>
+			</t>
+		</template>
+
+	</data>
 </openerp>

@@ -61,12 +61,18 @@ class account_invoice(models.Model):
 
         @api.model
         def create(self, vals):
+		date_invoice = vals.get('date_invoice',None)
+		if not date_invoice:
+			raise ValidationError('Debe ingresar la fecha de la factura')
                 context = self.env.context
                 uid = context.get('uid',False)
                 if uid:
                         user = self.env['res.users'].browse(uid)
                         if user.branch_id:
                                 vals['point_of_sale'] = user.branch_id.point_of_sale
+		caja_id = self.env['account.caja.diaria'].search([('branch_id','=',user.branch_id.id),('date','=',date_invoice),('state','=','open')])
+		if not caja_id:
+			raise ValidationError('No hay caja abierta para la sucursal.\nContacte al administrador')
                 return super(account_invoice,self).create(vals)
 
 	@api.multi
@@ -105,10 +111,13 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
-		if self.branch_id.fiscal_printer_id:
-			fp = self.branch_id.fiscal_printer_id
+		if self.fiscal_printer_id:
+			fp = self.fiscal_printer_id
 			if fp.printerStatus != 'Unknown':
-				fp.open_fiscal_journal()
+				if 'Jornada fiscal cerrada' in fp.fiscalStatus:
+					fp.open_fiscal_journal()
+				else:
+					raise ValidationError('No se puede abrir la caja debido a que la impresora fiscal\ntiene status fiscal incorrecto.\nContacte administrador')
 			else:
 				raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
 
@@ -169,10 +178,13 @@ class account_caja_diaria(models.Model):
 			vals['previous_balance'] = journal._get_account_balance(yesterday)
 			vals['end_balance'] = journal._get_account_balance(self.date)
 			return_id = self.env['account.caja.diaria.journal'].create(vals)
-		if self.branch_id.fiscal_printer_id:
-			fp = self.branch_id.fiscal_printer_id
+		if self.fiscal_printer_id:
+			fp = self.fiscal_printer_id
 			if fp.printerStatus != 'Unknown':
-				fp.close_fiscal_journal()
+				if 'Jornada fiscal abierta' in fp.fiscalStatus:
+					fp.close_fiscal_journal()
+				else:
+					raise ValidationError('No se puede cerrar la caja debido a que la impresora fiscal\ntiene status fiscal incorrecto.\nContacte administrador')
 			else:
 				raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
 		#import pdb;pdb.set_trace()
