@@ -94,6 +94,14 @@ class account_caja_diaria(models.Model):
 	_name = 'account.caja.diaria'
 	_description = 'Caja Diaria'
 
+
+	@api.multi
+	def unlink(self):
+		for caja in self:
+			if  self.state != 'draft':
+				raise ValidationError('No se puede borrar una caja ya  abierta')
+		return super(account_caja_diaria, self).unlink()
+
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
