@@ -20,7 +20,7 @@ class account_journal(models.Model):
 	@api.model
 	def _get_account_balance(self,date):
 		return_value = 0
-		account_lines = self.env['account.move.line.date'].search([('account_id','=',self.default_debit_account_id.id),('date','<=',yesterday)])
+		account_lines = self.env['account.move.line.date'].search([('account_id','=',self.default_debit_account_id.id),('date','<=',date)])
 		for account_line in account_lines:
 			return_value = return_value + (account_line.debit - account_line.credit)
 		return return_value
@@ -39,6 +39,7 @@ class res_branch(models.Model):
                 	raise ValidationError("Punto de venta ya existente")
 
 	point_of_sale = fields.Integer('Punto de Venta')
+	fiscal_printer_id = fields.Many2one('fpoc.fiscal_printer',string='Impresora Fiscal')
 
 class account_responsabilities_mapping(models.Model):
 	_name = 'account.responsabilities.mapping'
@@ -96,11 +97,17 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
+		if self.branch_id.fiscal_printer_id:
+			fp = self.branch_id.fiscal_printer_id
+			if fp.printerStatus != 'Unknown':
+				fp.open_fiscal_journal()
+			else:
+				raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
 
 
 	@api.one
 	def compute_account_movimientos_caja(self):
-		account_move_lines = self.env['account.move.line'].search([('date','=',self.date)])
+		account_move_lines = self.env['account.move.line'].search([('date','=',self.date),('branch_id','=',self.branch_id.id)])
 		journal_amounts = {}
 		for move_line in account_move_lines:	
 			if move_line.journal_id.type in ['cash','bank']:
@@ -109,7 +116,7 @@ class account_caja_diaria(models.Model):
 					credit_line = None
 					invoice_id = None
 					invoices = self.env['account.invoice'].search([('partner_id','=',move_line.partner_id.id),\
-						('state','in',['open','paid']),('date_invoice','<=',self.date)])
+						('state','in',['open','paid']),('date_invoice','<=',self.date),('branch_id','=',self.branch_id.id)])
 					for invoice in invoices:
 						for payment_line in invoice.payment_ids:
 							if payment_line.move_id.id == move_line.move_id.id:
@@ -124,25 +131,42 @@ class account_caja_diaria(models.Model):
 						'account_id': move_line.account_id.id,
 						'partner_id': move_line.partner_id.id,
 						'debit': move_line.debit,
+						'credit': move_line.credit,
 						}
 					if invoice_id:
 						vals['invoice'] = invoice_id
+					voucher_id = None
+					vouchers = self.env['account.voucher'].search([('partner_id','=',move_line.partner_id.id),\
+						('state','=',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id)])
+					for voucher in vouchers:
+						if voucher.nro_cupon != '':
+							if move_line.id in voucher.move_ids.ids:
+								voucher_id = voucher
+					if voucher_id and voucher_id.nro_cupon:
+						vals['cupon'] = voucher_id.nro_cupon
 					#saldo = move_line.journal_id._get_account_balance(self.date)
-					journal_amount = journal_amounts.get(move_line.journal_id.id,0)
-					journal_amounts[move_line.journal_id.id] = journal_amount + move_line.debit
+					journal_amts = journal_amounts.get(move_line.journal_id.id,[0,0])
+					journal_amounts[move_line.journal_id.id] = [journal_amts[0] + move_line.debit, journal_amts[1] + move_line.credit]
 					return_id = self.env['account.caja.diaria.journal.lineas'].create(vals)
 		self.state = 'done'
 		for key, value in journal_amounts.iteritems():
 			vals = {
 				'caja_id': self.id,
 				'journal_id': key,
-				'debit': value,
+				'debit': value[0],
+				'credit': value[1],
 				}
 			journal = self.env['account.journal'].browse(key)
-			yesterday = fields.Date.from_string(date) - timedelta(days=1)
+			yesterday = fields.Date.from_string(self.date) - timedelta(days=1)
 			vals['previous_balance'] = journal._get_account_balance(yesterday)
 			vals['end_balance'] = journal._get_account_balance(self.date)
 			return_id = self.env['account.caja.diaria.journal'].create(vals)
+		if self.branch_id.fiscal_printer_id:
+			fp = self.branch_id.fiscal_printer_id
+			if fp.printerStatus != 'Unknown':
+				fp.close_fiscal_journal()
+			else:
+				raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
 		#import pdb;pdb.set_trace()
 	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
 
@@ -159,6 +183,9 @@ class account_caja_diaria(models.Model):
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
+	fiscal_printer_id = fields.Many2one('fpoc.fiscal_printer',string='Impresora Fiscal')
+	printerStatus = fields.Char('Printer Status',related='fiscal_printer_id.printerStatus')
+	fiscalStatus = fields.Char('Fiscal Status',related='fiscal_printer_id.fiscalStatus')
 
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
@@ -169,7 +196,7 @@ class account_caja_diaria_journal(models.Model):
 	caja_id = fields.Many2one('account.caja.diaria')
 	journal_id = fields.Many2one('account.journal')
 	debit = fields.Float('Débitos')
-	debit = fields.Float('Créditos')
+	credit = fields.Float('Créditos')
 	previous_balance = fields.Float('Saldo Anterior')
 	end_balance = fields.Float('Saldo Final')
 
@@ -185,4 +212,7 @@ class account_caja_diaria_journal_lineas(models.Model):
 	account_id = fields.Many2one('account.account',string='Cuenta Contable')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
 	invoice = fields.Many2one('account.invoice',string='Factura')
+	cupon = fields.Char('Cupón')
 	debit = fields.Float('Débito')	
+	credit = fields.Float('Crédito')	
+

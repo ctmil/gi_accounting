@@ -11,6 +11,7 @@
 		<field name="name" position="after">
 			<group>	
 				<field name="point_of_sale" />
+				<field name="fiscal_printer_id" />
 			</group>
 		</field>
 	    </field>
@@ -144,25 +145,39 @@
 			<group>
 				<field name="date" />
 				<field name="branch_id" />
-				<field name="journal_ids">
-					<tree string="Métodos de Pago" readonly="1">
-						<field name="journal_id" string="Método de Pago" />
-						<field name="previous_balance" string="Saldo Anterior" />
-						<field name="debit" string="Monto" />
-						<field name="end_balance" string="Saldo Final" />
-					</tree>
-				</field>
-				<field name="line_ids">
-					<tree string="Movimientos" readonly="1">
-						<field name="caja_journal_id" /> 
-						<field name="account_move_line_id" /> 
-						<field name="account_id" /> 
-						<field name="partner_id" /> 
-						<field name="invoice" /> 
-						<field name="debit" /> 
-					</tree>
-				</field>
 			</group>
+			<group string="Impresora Fiscal">
+				<field name="fiscal_printer_id" />
+				<field name="printerStatus" />
+				<field name="fiscalStatus" />
+			</group>
+			<notebook>
+				<page string="Métodos de Pago">
+					<field name="journal_ids" string="Métodos de Pago">
+						<tree string="Métodos de Pago" readonly="1">
+							<field name="journal_id" string="Método de Pago" />
+							<field name="previous_balance" string="Saldo Anterior" />
+							<field name="debit" string="Débitos" />
+							<field name="credit" string="Créditos" />
+							<field name="end_balance" string="Saldo Final" />
+						</tree>
+					</field>
+				</page>
+				<page string="Movimientos">
+					<field name="line_ids" string="Movimientos">
+						<tree string="Movimientos" readonly="1">
+							<field name="caja_journal_id" /> 
+							<field name="account_move_line_id" /> 
+							<field name="account_id" /> 
+							<field name="partner_id" /> 
+							<field name="invoice" /> 
+							<field name="cupon" /> 
+							<field name="debit" /> 
+							<field name="credit" /> 
+						</tree>
+					</field>
+				</page>
+			</notebook>
 		</form>
             </field>
         </record>
