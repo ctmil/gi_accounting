@@ -17,6 +17,18 @@
 	    </field>
 	</record>
 
+        <record id="account_voucher_search_gi" model="ir.ui.view">
+            <field name="name">account.voucher.search.gi</field>
+            <field name="model">account.voucher</field>
+            <field name="inherit_id" ref="account_voucher.view_voucher_filter_customer_pay" />
+            <field name="arch" type="xml">
+                <field name="period_id" position="after">
+			<filter string="Hoy" 
+				domain="[('date', '&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')),('date', '&lt;=',datetime.datetime.now().strftime('%Y-%m-%d 23:23:59'))]"/>
+                </field>
+            </field>
+        </record>
+
         <record id="account_invoice_search_gi" model="ir.ui.view">
             <field name="name">account.invoice.search.gi</field>
             <field name="model">account.invoice</field>
