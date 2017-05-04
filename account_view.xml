@@ -17,6 +17,18 @@
 	    </field>
 	</record>
 
+        <record id="account_invoice_search_gi" model="ir.ui.view">
+            <field name="name">account.invoice.search.gi</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.view_account_invoice_filter" />
+            <field name="arch" type="xml">
+                <filter name="unpaid" position="after">
+			<filter string="Hoy" 
+				domain="[('date_invoice', '&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00')),('date_invoice', '&lt;=',datetime.datetime.now().strftime('%Y-%m-%d 23:23:59'))]"/>
+                </filter>
+            </field>
+        </record>
+
         <record id="account_invoice_form_gi" model="ir.ui.view">
             <field name="name">account.invoice.form.gi</field>
             <field name="model">account.invoice</field>
