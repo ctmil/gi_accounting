@@ -59,21 +59,33 @@ class account_invoice(models.Model):
 	point_of_sale = fields.Integer('Punto de Venta')
 	is_debit_note = fields.Boolean('Nota de Debito',related='journal_id.is_debit_note')
 
+	
         @api.model
         def create(self, vals):
-		date_invoice = vals.get('date_invoice',None)
-		if not date_invoice:
-			raise ValidationError('Debe ingresar la fecha de la factura')
+		#date_invoice = vals.get('date_invoice',None)
+		#if not date_invoice:
+		#	raise ValidationError('Debe ingresar la fecha de la factura')
                 context = self.env.context
                 uid = context.get('uid',False)
                 if uid:
                         user = self.env['res.users'].browse(uid)
                         if user.branch_id:
                                 vals['point_of_sale'] = user.branch_id.point_of_sale
-		caja_id = self.env['account.caja.diaria'].search([('branch_id','=',user.branch_id.id),('date','=',date_invoice),('state','=','open')])
-		if not caja_id:
-			raise ValidationError('No hay caja abierta para la sucursal.\nContacte al administrador')
+		else:
+			origin = vals.get('origin',False)
+			if origin:
+				order = self.env['sale.order'].search([('name','=',origin)])
+				if order:
+					user = order.user_id
+			else:
+				user = self.env['res.users'].browse(1)
+		if user:
+			vals['branch_id'] = user.branch_id.id
+		#caja_id = self.env['account.caja.diaria'].search([('branch_id','=',user.branch_id.id),('date','=',date_invoice),('state','=','open')])
+		#if not caja_id:
+		#	raise ValidationError('No hay caja abierta para la sucursal.\nContacte al administrador')
                 return super(account_invoice,self).create(vals)
+	
 
 	@api.multi
 	def onchange_partner_id(self, type, partner_id, date_invoice=False,payment_term=False,\
