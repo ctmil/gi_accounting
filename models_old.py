@@ -30,22 +30,35 @@ class account_move_line(osv.osv):
 		res = super(account_move_line, self).reconcile_partial(cr,uid, ids, 'auto', context, writeoff_acc_id, writeoff_period_id, writeoff_journal_id)
 		invoices = []
 		journal_id = None
+		amount = 0
 		for move_line_id in ids:
 			move_line = self.pool.get('account.move.line').browse(cr,uid,move_line_id)
 			if move_line.invoice:
 				invoices.append(move_line.invoice)
 			else:
 				journal_id = move_line.journal_id
+				amount = amount + move_line.debit
 		if len(invoices) == 1 and journal_id:
 			journal_present = False	
 			sale_order = invoices[0].sale_order_id
+			amount_journal = 0
 			if sale_order and sale_order.payment:
+				# Controla el medio de pago
+				amount_so = 0
 				for payment_line in sale_order.payment:
 					if payment_line.journal_id.id == journal_id.id:
 						journal_present = True
+						amount_journal = payment_line.amount
 				if not journal_present:
 					raise Warning('El medio de pago no está presente en el pedido de ventas')				
-			
+				# Controla el monto	
+				other_payments = invoices[0].payment_ids
+				amount_invoice = amount
+				for othp in other_payments:
+					if othp.journal_id.id == journal_id.id:
+						amount_invoice = amount_invoice + othp.debit
+				if amount_invoice > amount_journal:
+					raise Warning('El monto ingresado supera al monto estipulado en el pedido de ventas')
 
 class sale_order(models.Model):
 	_name = 'sale.order'
