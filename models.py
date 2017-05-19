@@ -56,9 +56,16 @@ class account_responsabilities_mapping(models.Model):
 class account_invoice(models.Model):
         _inherit = 'account.invoice'
 
+	@api.one
+	def _compute_sale_order_id(self):
+		if self.origin:
+			sale_order = self.env['sale.order'].search([('name','=',self.origin)])
+			if sale_order:
+				self.sale_order_id = sale_order.id
+
 	point_of_sale = fields.Integer('Punto de Venta')
 	is_debit_note = fields.Boolean('Nota de Debito',related='journal_id.is_debit_note')
-
+	sale_order_id = fields.Many2one('sale.order',string='Pedido de ventas',compute=_compute_sale_order_id)
 	
         @api.model
         def create(self, vals):

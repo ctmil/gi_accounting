@@ -23,6 +23,29 @@ from openerp.osv import osv,fields
 from openerp import models, api, tools
 from openerp.exceptions import Warning
 
+class account_move_line(osv.osv):
+	_inherit = 'account.move.line'
+
+	def reconcile_partial(self, cr, uid, ids, type='auto', context=None, writeoff_acc_id=False, writeoff_period_id=False, writeoff_journal_id=False):
+		res = super(account_move_line, self).reconcile_partial(cr,uid, ids, 'auto', context, writeoff_acc_id, writeoff_period_id, writeoff_journal_id)
+		invoices = []
+		journal_id = None
+		for move_line_id in ids:
+			move_line = self.pool.get('account.move.line').browse(cr,uid,move_line_id)
+			if move_line.invoice:
+				invoices.append(move_line.invoice)
+			else:
+				journal_id = move_line.journal_id
+		if len(invoices) == 1 and journal_id:
+			journal_present = False	
+			sale_order = invoices[0].sale_order_id
+			if sale_order and sale_order.payment:
+				for payment_line in sale_order.payment:
+					if payment_line.journal_id.id == journal_id.id:
+						journal_present = True
+				if not journal_present:
+					raise Warning('El medio de pago no está presente en el pedido de ventas')				
+			
 
 class sale_order(models.Model):
 	_name = 'sale.order'
