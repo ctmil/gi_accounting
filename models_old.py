@@ -169,3 +169,24 @@ class account_caja_diaria_journal_view(osv.osv):
                         """)
 
 
+class account_invoice(osv.osv):
+	_inherit = 'account.invoice'
+
+	def write(self, cr, uid, ids, vals, context=None):
+                res = super(account_invoice, self).write(cr,uid, ids, vals, context)
+		if 'state' in vals.keys():
+			if vals['state'] == 'open':
+				for invoice_id in ids:
+					invoice = self.pool.get('account.invoice').browse(cr,uid,invoice_id)
+					if invoice.sale_order_id:
+						if invoice.sale_order_id.payment:
+							for payment_line in invoice.sale_order_id.payment:
+								vals_voucher = {
+									'partner_id': invoice.partner_id.id,
+									'reference': payment_line.sale_id.name + ' - ' + payment_line.journal_id.name,
+									'amount': payment_line.amount,
+									'type': 'receipt',
+									'account_id': payment_line.journal_id.default_debit_account_id.id,
+									}
+								voucher_id = self.pool.get('account.voucher').create(cr,uid,vals_voucher)			
+		return res
