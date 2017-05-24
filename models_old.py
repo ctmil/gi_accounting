@@ -23,61 +23,61 @@ from openerp.osv import osv,fields
 from openerp import models, api, tools
 from openerp.exceptions import Warning
 
-class account_move_line(osv.osv):
-	_inherit = 'account.move.line'
+#class account_move_line(osv.osv):
+#	_inherit = 'account.move.line'
 
-	def reconcile_partial(self, cr, uid, ids, type='auto', context=None, writeoff_acc_id=False, writeoff_period_id=False, writeoff_journal_id=False):
-		res = super(account_move_line, self).reconcile_partial(cr,uid, ids, 'auto', context, writeoff_acc_id, writeoff_period_id, writeoff_journal_id)
-		invoices = []
-		journal_id = None
-		amount = 0
-		account_move = None
-		move_line_credit = None
-		for move_line_id in ids:
-			move_line = self.pool.get('account.move.line').browse(cr,uid,move_line_id)
-			if move_line.invoice:
-				invoices.append(move_line.invoice)
-			if move_line.credit > 0:
-				journal_id = move_line.journal_id
-				amount = amount + move_line.credit
-				move_line_credit = move_line
-			account_move = move_line.move_id
-		if len(invoices) == 1 and journal_id:
-			journal_present = False	
-			sale_order = invoices[0].sale_order_id
-			amount_invoice = 0
-			amount_journal = 0
-			if sale_order and sale_order.payment:
-				# Controla el medio de pago
-				amount_so = 0
-				for payment_line in sale_order.payment:
-					if payment_line.journal_id.id == journal_id.id:
-						journal_present = True
-						amount_journal = payment_line.amount
-				if not journal_present:
-					raise Warning('El medio de pago no está presente en el pedido de ventas')				
-				# Controla el monto	
-				#other_payments = invoices[0].payment_ids
-				#amount_invoice = amount
-				#for othp in other_payments:
-				#	if othp.id in ids:
-				#		continue
-				#	if othp.journal_id.id == journal_id.id:
-				#		amount_invoice = amount_invoice + othp.debit
-				voucher_id = self.pool.get('account.voucher').search(cr,uid,[('move_ids','=',move_line_credit.id)])
-				if voucher_id:
-					voucher = self.pool.get('account.voucher').browse(cr,uid,voucher_id)
-					voucher_amount = voucher.amount
-					if voucher_amount > amount_journal:
-						raise Warning('El monto ingresado supera al monto estipulado en el pedido de ventas')
-					other_payments = invoices[0].payment_ids
-					for othp in other_payments:
-						if othp.id in ids:
-							continue
-						if othp.journal_id.id == journal_id.id:
-							amount_invoice = amount_invoice + othp.credit
-					if (amount_invoice + voucher_amount) > amount_journal:
-						raise Warning('El monto ingresado junto con los montos ya pagados\nsuperan al monto estipulado en el pedido de ventas')
+	#def reconcile_partial(self, cr, uid, ids, type='auto', context=None, writeoff_acc_id=False, writeoff_period_id=False, writeoff_journal_id=False):
+	#	res = super(account_move_line, self).reconcile_partial(cr,uid, ids, 'auto', context, writeoff_acc_id, writeoff_period_id, writeoff_journal_id)
+	#	invoices = []
+	#	journal_id = None
+	#	amount = 0
+	#	account_move = None
+	#	move_line_credit = None
+	#	for move_line_id in ids:
+	#		move_line = self.pool.get('account.move.line').browse(cr,uid,move_line_id)
+	#		if move_line.invoice:
+	#			invoices.append(move_line.invoice)
+	#		if move_line.credit > 0:
+	#			journal_id = move_line.journal_id
+	#			amount = amount + move_line.credit
+	#			move_line_credit = move_line
+	#		account_move = move_line.move_id
+	#	if len(invoices) == 1 and journal_id:
+	#		journal_present = False	
+	#		sale_order = invoices[0].sale_order_id
+	#		amount_invoice = 0
+	#		amount_journal = 0
+	#		if sale_order and sale_order.payment:
+	#			# Controla el medio de pago
+	#			amount_so = 0
+	#			for payment_line in sale_order.payment:
+	#				if payment_line.journal_id.id == journal_id.id:
+	#					journal_present = True
+	#					amount_journal = payment_line.amount
+	#			if not journal_present:
+	#				raise Warning('El medio de pago no está presente en el pedido de ventas')				
+	#			# Controla el monto	
+	#			#other_payments = invoices[0].payment_ids
+	#			#amount_invoice = amount
+	#			#for othp in other_payments:
+	#			#	if othp.id in ids:
+	#			#		continue
+	#			#	if othp.journal_id.id == journal_id.id:
+	#			#		amount_invoice = amount_invoice + othp.debit
+	#			voucher_id = self.pool.get('account.voucher').search(cr,uid,[('move_ids','=',move_line_credit.id)])
+	#			if voucher_id:
+	#				voucher = self.pool.get('account.voucher').browse(cr,uid,voucher_id)
+	#				voucher_amount = voucher.amount
+	#				if voucher_amount > amount_journal:
+	#					raise Warning('El monto ingresado supera al monto estipulado en el pedido de ventas')
+	#				other_payments = invoices[0].payment_ids
+	#				for othp in other_payments:
+	#					if othp.id in ids:
+	#						continue
+	#					if othp.journal_id.id == journal_id.id:
+	#						amount_invoice = amount_invoice + othp.credit
+	#				if (amount_invoice + voucher_amount) > amount_journal:
+	#					raise Warning('El monto ingresado junto con los montos ya pagados\nsuperan al monto estipulado en el pedido de ventas')
 
 class sale_order(models.Model):
 	_name = 'sale.order'
