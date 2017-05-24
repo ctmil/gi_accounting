@@ -178,6 +178,10 @@ class account_invoice(osv.osv):
 			if vals['state'] == 'open':
 				for invoice_id in ids:
 					invoice = self.pool.get('account.invoice').browse(cr,uid,invoice_id)
+					move_line_voucher = None
+					for move_line in invoice.move_id.line_id:
+						if move_line.debit > 0:
+							move_line_voucher = move_line
 					if invoice.sale_order_id:
 						if invoice.sale_order_id.payment:
 							for payment_line in invoice.sale_order_id.payment:
@@ -189,4 +193,16 @@ class account_invoice(osv.osv):
 									'account_id': payment_line.journal_id.default_debit_account_id.id,
 									}
 								voucher_id = self.pool.get('account.voucher').create(cr,uid,vals_voucher)			
+								vals_voucher_line = {
+									'voucher_id': voucher_id,
+									'account_id': invoice.account_id.id,
+									'amount': payment_line.amount,
+									'amount_original': payment_line.amount,
+									'move_line_id': move_line_voucher.id,
+									'display_name': payment_line.sale_id.name + ' - ' + payment_line.journal_id.name,
+									'partner_id': invoice.partner_id.id,
+									'type': 'cr'
+									}
+								voucher_line_id = self.pool.get('account.voucher.line').create(cr,uid,vals_voucher_line)
+
 		return res
