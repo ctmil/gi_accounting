@@ -188,7 +188,7 @@ class account_invoice(osv.osv):
 								vals_voucher = {
 									'partner_id': invoice.partner_id.id,
 									'reference': payment_line.sale_id.name + ' - ' + payment_line.journal_id.name,
-									'amount': payment_line.amount,
+									'amount': payment_line.final_amount,
 									'type': 'receipt',
 									'account_id': payment_line.journal_id.default_debit_account_id.id,
 									}
@@ -196,8 +196,8 @@ class account_invoice(osv.osv):
 								vals_voucher_line = {
 									'voucher_id': voucher_id,
 									'account_id': invoice.account_id.id,
-									'amount': payment_line.amount,
-									'amount_original': payment_line.amount,
+									'amount': payment_line.final_amount,
+									'amount_original': payment_line.final_amount,
 									'move_line_id': move_line_voucher.id,
 									'display_name': payment_line.sale_id.name + ' - ' + payment_line.journal_id.name,
 									'partner_id': invoice.partner_id.id,
