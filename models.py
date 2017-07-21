@@ -56,6 +56,30 @@ class account_responsabilities_mapping(models.Model):
 class account_invoice(models.Model):
         _inherit = 'account.invoice'
 
+	@api.multi
+	def test_wizard(self):
+		test_tree = self.env['wizard.test.tree'].create({'name': 'Mi nombre'})
+		partner_ids = self.env['res.partner'].search([('supplier','=',True)])
+		for partner in partner_ids:
+			vals_line = {
+				'invoice_id': self.id,
+				'header_id': test_tree.id,
+				'partner_id': partner.id,
+				'selected': 'no'
+				}
+			line_id = self.env['wizard.test.tree.line'].create(vals_line)
+                return {'type': 'ir.actions.act_window',
+                        'name': 'Test Wizard',
+                        'res_model': 'wizard.test.tree',
+                        'res_id': test_tree.id,
+                        'view_type': 'form',
+                        'view_mode': 'form',
+                        'target': 'new',
+                        'nodestroy': True,
+                        }
+
+
+
 	@api.one
 	def _compute_sale_order_id(self):
 		if self.origin:
@@ -74,6 +98,7 @@ class account_invoice(models.Model):
 		#	raise ValidationError('Debe ingresar la fecha de la factura')
                 context = self.env.context
                 uid = context.get('uid',False)
+		user = None
                 if uid:
                         user = self.env['res.users'].browse(uid)
                         if user.branch_id:
