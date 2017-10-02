@@ -50,6 +50,7 @@ class account_responsabilities_mapping(models.Model):
 	journal_id = fields.Many2one('account.journal',string='Diario',domain=[('type','in',['sale','sale_refund'])])
 	journal_type = fields.Selection(selection=[('sale', 'Sale'),('sale_refund','Sale Refund')],related='journal_id.type')
 	point_of_sale = fields.Integer('Point of Sale',related='journal_id.point_of_sale')
+	#point_of_sale = fields.Char('Point of Sale',related='journal_id.point_of_sale')
 	is_debit_note = fields.Boolean('Nota de Debito',related='journal_id.is_debit_note')
 
 
