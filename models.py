@@ -280,4 +280,42 @@ class account_caja_diaria_journal_lineas(models.Model):
 	cupon = fields.Char('Cupón')
 	debit = fields.Float('Débito')	
 	credit = fields.Float('Crédito')	
-
+	
+	
+class account_cierre_z(models.Model):
+	_name = 'account.cierre.z'
+	_description = 'Cierre Z'
+	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
+	name = fields.Char('Numero')
+	fecha = fields.Datetime('Fecha')
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('close','Cerrado')],default='draft')
+	cierre= fields.Integer('Numero')
+	point_of_sale= fields.Integer('Punto de Venta')
+	doc_fiscales_monto= fields.Float('Venta Diaria')
+	doc_fiscales_iva= fields.Float('Iva Diario')
+	doc_fiscales_no_gravados=fields.Float('Conceptos no gravados')
+	doc_fiscales_percepciones=fields.Float('Percepciones')
+	doc_fiscales_ultimo_a=fields.Integer('Ultimo Ticket A')
+	doc_fiscales_ultimo_b=fields.Integer('Ultimo Ticket B')
+	doc_fiscales_emitidos=fields.Integer('Emitidos')
+	doc_fiscales_cancelados=fields.Integer('Cancelados')
+	doc_no_fiscales_emitidos=fields.Integer('No Fiscales Emitidos')
+	doc_no_fiscales_homologados_emitidos=fields.Integer('No Fiscales Homologados Emitidos')
+	doc_nc_monto= fields.Float('Credito Diario')
+	doc_nc_iva= fields.Float('Iva Diario')
+	doc_nc_no_gravados=fields.Float('Conceptos no gravados')
+	doc_nc_percepciones=fields.Float('Percepciones')
+	doc_nc_ultimo_a=fields.Integer('Ultimo Nota de Credito A')
+	doc_nc_ultimo_b=fields.Integer('Ultimo Nota de Credito B')
+	doc_nc_emitidos=fields.Integer('Emitidos')
+	disc_alic_iva = fields.Float('Alicuota Iva')
+	disc_monto_venta = fields.Float('Monto Venta')
+	disc_monto_iva = fields.Float('Monto Iva')
+	disc_monto_no_gravados = fields.Float('Monto Conceptos no Gravados')
+	disc_monto_percepciones = fields.Float('Monto Percepciones')
+	disc_nc_alic_iva = fields.Float('Alicuota Iva')
+	disc_nc_monto_venta = fields.Float('Monto Venta')
+	disc_nc_monto_iva = fields.Float('Monto Iva')
+	disc_nc_monto_no_gravados = fields.Float('Monto Conceptos no Gravados')
+	disc_nc_monto_percepciones = fields.Float('Monto Percepciones')
+       
