@@ -288,7 +288,7 @@ class account_cierre_z(models.Model):
 	name = fields.Char('Numero')
 	fecha = fields.Datetime('Fecha')
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('close','Cerrado')],default='draft')
-	cierre= fields.Integer('Numero')
+	cierre= fields.Char('Numero')
 	point_of_sale= fields.Char('Punto de Venta')
 	doc_fiscales_monto= fields.Float('Venta Diaria')
 	doc_fiscales_iva= fields.Float('Iva Diario')
