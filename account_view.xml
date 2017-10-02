@@ -237,5 +237,110 @@
 
 	<!-- Fin a partir de aca -->
 
+        <!-- Cierre Z -->
+        
+        <record id="account_cierre_z_view" model="ir.ui.view">
+            <field name="name">Cierre Z Form</field>
+            <field name="model">account.cierre.z</field>
+            <field name="arch" type="xml">
+		<form string="Cierre Z">
+			<header>
+				<field  name="state" widget="statusbar" clickable="True"/>
+			</header>
+			<group string=" Cierre Z">
+                <field name="name" />
+                <field name="cierre" />
+				<field name="fecha" />
+				<field name="branch_id" />
+                <field name="point_of_sale" />
+			</group>
+			<group string="Informacion General de Comprobantes Fiscales">
+				
+				<field name="doc_fiscales_monto" />
+				<field name="doc_fiscales_iva" />
+                <field name="doc_fiscales_no_gravados" />
+                <field name="doc_fiscales_percepciones" />
+                <field name="doc_fiscales_ultimo_a" />
+                <field name="doc_fiscales_ultimo_b" />
+                <field name="doc_fiscales_emitidos" />
+                <field name="doc_fiscales_cancelados" />
+            </group>
+			<group string="Informacion Documentos no Fiscales ">
+                <field name="doc_no_fiscales_emitidos" />
+                <field name="doc_no_fiscales_homologados_emitidos" />
+            </group>
+			<group string="Informacion General de Notas de Credito ">    
+                <field name="doc_nc_monto" />
+                <field name="doc_nc_iva" />
+                <field name="doc_nc_no_gravados" />
+                <field name="doc_nc_percepciones" />
+                <field name="doc_nc_ultimo_a" />
+                <field name="doc_nc_ultimo_b" />
+                <field name="doc_nc_emitidos" />
+            </group>
+			<group string="Informacion Discriminada de Documentos Fiscales ">    
+                
+                <field name="disc_alic_iva" />
+                <field name="disc_monto_venta" />
+                <field name="disc_monto_iva" />
+                <field name="disc_monto_no_gravados" />
+                <field name="disc_monto_percepciones" />
+            </group>
+			<group string="Informacion Discriminada de Notas de Credito ">   
+                <field name="disc_nc_alic_iva" />
+                <field name="disc_nc_monto_venta" />
+                <field name="disc_nc_monto_iva" />
+                <field name="disc_nc_monto_no_gravados" />
+                <field name="disc_nc_monto_percepciones" />
+            </group>
+			
+		</form>
+            </field>
+        </record>
+
+        <record id="account_cierre_z_tree" model="ir.ui.view">
+            <field name="name">Cierre Z Tree</field>
+            <field name="model">account.cierre.z</field>
+            <field name="arch" type="xml">
+		<tree string="Cierre Z">
+			<field name="name" />
+                <field name="branch_id" />
+                <field name="point_of_sale" />
+                <field name="cierre" />
+				<field name="fecha" />
+                <field name="state" />
+                <field name="disc_monto_venta" />
+                <field name="disc_monto_iva" />
+                <field name="disc_monto_no_gravados" />
+                <field name="disc_monto_percepciones" />
+                <field name="disc_nc_monto_venta" />
+                <field name="disc_nc_monto_iva" />
+                <field name="disc_nc_monto_no_gravados" />
+                <field name="disc_nc_monto_percepciones" />
+				
+		</tree>
+            </field>
+        </record>
+
+        <record id="action_account_cierre_z" model="ir.actions.act_window">
+            <field name="name">Cierre Z</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">account.cierre.z</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <!-- field name="target">new</field -->
+            <!-- field name="view_id" ref="account_caja_diaria_view"/ -->
+        </record>
+
+        <menuitem
+            name="Cierre Z"
+            parent="account.menu_finance_receivables"
+            action="action_account_cierre_z"
+            id="menu_account_cierre_z"
+            icon="STOCK_PRINT"/>
+        
+        <!-- Fin Cierre Z -->
+        
+        
     </data>
 </openerp>
