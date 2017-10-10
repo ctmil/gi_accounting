@@ -224,7 +224,21 @@
                                     <field name="amount_journals" />
                                 </div>
                     </group>
-				</page>
+                </page>
+                <page string="Transferencias">
+					<field name="transfer_ids" string="Transferencias">
+						<tree string="Transferencias" readonly="1">
+							<field name="journal_id" string="Transferencia" />
+							<field name="amount" string="Monto" />
+						</tree>
+					</field>
+                    <group class="oe_subtotal_footer oe_right" name="voucher_total">
+                          
+                          <div class="oe_subtotal_footer_separator oe_inline">
+                               <field name="amount_transfer" />
+                                </div>
+                    </group>
+                </page>
 			</notebook>
 		</form>
             </field>

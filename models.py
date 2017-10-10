@@ -260,6 +260,9 @@ class account_caja_diaria(models.Model):
 		voucher_ids=self.env['account.caja.diaria.voucher'].search([('caja_id','=',self.id)])
 		for voucher in voucher_ids:
 			voucher.unlink()
+		transfer_ids=self.env['account.caja.diaria.transfer'].search([('caja_id','=',self.id)])
+		for transfer in transfer_ids:
+			transfer.unlink()
 		#self.env['account.caja.diaria.voucher'].unlink(voucher_ids)
 		vouchers = self.env['account.voucher'].search([('state','in',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id)])
 		
@@ -288,6 +291,15 @@ class account_caja_diaria(models.Model):
 			if invoice_journals[journal]!=0:
 				self.env['account.caja.diaria.journal'].create({'caja_id':self.id, 'journal_id':journal, 'amount': invoice_journals[journal]})
 		print 'invoices?', invoice_journals
+		transfer_journal_id = self.env['account.journal'].search([('name','ilike','transferencia efectivo')])
+		transfers = self.env['account.move'].search([('state','in',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id),('journal_id','in',transfer_journal_id.ids)])
+		print 'transfers?', transfers
+		transferences={}
+		for transfer in transfers:
+			amount = 0.0
+			for line in transfer.line_id:
+				amount = amount + line.debit
+			self.env['account.caja.diaria.transfer'].create({'caja_id':self.id, 'journal_id':transfer.journal_id.id, 'amount': amount})
 
 	@api.one
 	def _compute_amount(self):
@@ -305,14 +317,21 @@ class account_caja_diaria(models.Model):
     
 	@api.one
 	def _compute_amount_journals(self):
-		self.amoun_journals = 0.0
+		self.amount_journals = 0.0
 		for journal in self.journal_ids:
 			print 'journal type?',journal.journal_id.type
 			self.amount_journals = self.amount_journals + journal.amount  
 			#if journal.journal_id.type in ['sale_refund']:
 			#     self.amount_journals = self.amount_journals - journal.amount
 		return self.amount_journals
-    
+
+	@api.one
+	def _compute_amount_transfer(self):
+		self.amount_transfer = 0.0
+		for transfer in self.transfer_ids:
+			self.amount_transfer = self.amount_transfer + transfer.amount  
+		return self.amount_transfer
+
 	@api.model
 	def create(self,vals):
 		user = self.env['res.users'].browse(self.env.context['uid'])
@@ -327,10 +346,12 @@ class account_caja_diaria(models.Model):
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
 	voucher_ids = fields.One2many(comodel_name='account.caja.diaria.voucher',inverse_name='caja_id')
+	transfer_ids = fields.One2many(comodel_name='account.caja.diaria.transfer',inverse_name='caja_id')
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
 	amount = fields.Float(compute='_compute_amount', string='Amount')
 	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Amount')    
 	amount_journals = fields.Float(compute='_compute_amount_journals', string='Amount') 
+	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Amount')
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
 class account_caja_diaria_journal(models.Model):
@@ -344,6 +365,14 @@ class account_caja_diaria_journal(models.Model):
 class account_caja_diaria_voucher(models.Model):
 	_name = 'account.caja.diaria.voucher'
 	_description = 'Sumarized table for vouchers'
+
+	caja_id = fields.Many2one('account.caja.diaria')
+	journal_id = fields.Many2one('account.journal')
+	amount = fields.Float('Total')
+	
+class account_caja_diaria_transfer(models.Model):
+	_name = 'account.caja.diaria.transfer'
+	_description = 'Sumarized table for transfers'
 
 	caja_id = fields.Many2one('account.caja.diaria')
 	journal_id = fields.Many2one('account.journal')
