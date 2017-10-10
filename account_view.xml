@@ -168,28 +168,41 @@
 			<header>
 				<button name="open_account_movimientos_caja" type="object"
 					string="Abrir" class="oe_default" states="draft" />
-				<button name="compute_account_movimientos_caja" type="object"
-					string="Cerrar" class="oe_default" states="open" />
-				<field  name="state" widget="statusbar" />
+                <button name="compute_account_movimientos_caja" type="object"
+					string="Compute" class="oe_default" states="draft,open" />
+				
+				<field  name="state" widget="statusbar" clickable="1"/>
 			</header>
 			<group>
 				<field name="date" />
 				<field name="branch_id" />
 			</group>
-			<group string="Impresora Fiscal">
-				<field name="fiscal_printer_id" />
-				<field name="printerStatus" />
-				<field name="fiscalStatus" />
-			</group>
+			
 			<notebook>
-				<page string="Métodos de Pago">
+                <page string="Arqueo">
+					<field name="money_ids" string="Arqueo">
+						<tree string="Métodos de Pago" editable="bottom">
+							<field name="value" string="Valor" />
+							<field name="quantity" string="Cantidad" />
+							<field name="amount" string="Monto" />
+							
+						</tree>
+					</field>
+				</page>
+                <page string="Recibos">
+					<field name="voucher_ids" string="Recibos">
+						<tree string="Recibos" >
+							<field name="journal_id" string="Diario" />
+							<field name="amount" string="Monto" />
+							
+						</tree>
+					</field>
+				</page>
+				<page string="Facturacion">
 					<field name="journal_ids" string="Métodos de Pago">
 						<tree string="Métodos de Pago" readonly="1">
 							<field name="journal_id" string="Método de Pago" />
-							<field name="previous_balance" string="Saldo Anterior" />
-							<field name="debit" string="Débitos" />
-							<field name="credit" string="Créditos" />
-							<field name="end_balance" string="Saldo Final" />
+							<field name="amount" string="Monto" />
 						</tree>
 					</field>
 				</page>

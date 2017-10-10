@@ -156,20 +156,20 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
-		if self.fiscal_printer_id:
-			fp = self.fiscal_printer_id
-			if fp.printerStatus != 'Unknown':
-				if 'Jornada fiscal cerrada' in fp.fiscalStatus:
-					fp.open_fiscal_journal()
-				else:
-					raise ValidationError('No se puede abrir la caja debido a que la impresora fiscal\ntiene status fiscal incorrecto.\nContacte administrador')
-			else:
-				raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
+	#	if self.fiscal_printer_id:
+	#		fp = self.fiscal_printer_id
+	#		if fp.printerStatus != 'Unknown':
+	#			if 'Jornada fiscal cerrada' in fp.fiscalStatus:
+	#				fp.open_fiscal_journal()
+	#			else:
+	#				raise ValidationError('No se puede abrir la caja debido a que la impresora fiscal\ntiene status fiscal incorrecto.\nContacte administrador')
+	#		else:
+	#			raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
 
 
 	@api.one
-	def compute_account_movimientos_caja(self):
-		account_move_lines = self.env['account.move.line'].search([('date','=',self.date),('branch_id','=',self.branch_id.id)])
+	def compute_account_movimientos_caja_old(self):
+		account_move_lines = self.env['account.'].search([('date','=',self.date),('branch_id','=',self.branch_id.id)])
 		journal_amounts = {}
 		for move_line in account_move_lines:	
 			if move_line.journal_id.type in ['cash','bank']:
@@ -235,6 +235,39 @@ class account_caja_diaria(models.Model):
 		#import pdb;pdb.set_trace()
 	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
 
+	@api.one
+	def compute_account_movimientos_caja(self):
+		invoice_ids=self.env['account.caja.diaria.journal'].search([('caja_id','=',self.id)])
+		for invoice in invoice_ids:
+			invoice.unlink()
+		voucher_ids=self.env['account.caja.diaria.voucher'].search([('caja_id','=',self.id)])
+		for voucher in voucher_ids:
+			voucher.unlink()
+		#self.env['account.caja.diaria.voucher'].unlink(voucher_ids)
+		vouchers = self.env['account.voucher'].search([('state','in',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id)])
+		
+		
+		print 'vouchers?', vouchers
+		journals={}
+		for voucher in vouchers:
+			if voucher.journal_id.id in journals:
+					journals[voucher.journal_id.id]=journals[voucher.journal_id.id]+voucher.amount
+			else:
+					journals[voucher.journal_id.id]=voucher.amount
+		for journal in journals:
+			self.env['account.caja.diaria.voucher'].create({'caja_id':self.id, 'journal_id':journal, 'amount': journals[journal]}) 
+		invoices = self.env['account.invoice'].search([('state','in',['open','paid']),('date_invoice','=',self.date),('branch_id','=',self.branch_id.id)])
+		invoice_journals={}
+		for invoice in invoices:
+			if invoice.journal_id.id in invoice_journals:
+					invoice_journals[invoice.journal_id.id]=invoice_journals[invoice.journal_id.id]+invoice.amount_total
+			else:
+					invoice_journals[invoice.journal_id.id]=invoice.amount_total
+		print 'journals?', journals
+		for journal in invoice_journals:
+			if invoice_journals[journal]>0:
+				self.env['account.caja.diaria.journal'].create({'caja_id':self.id, 'journal_id':journal, 'amount': invoice_journals[journal]})
+		print 'invoices?', invoice_journals
 
 	@api.model
 	def create(self,vals):
@@ -244,13 +277,14 @@ class account_caja_diaria(models.Model):
 		
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
+	
 	date = fields.Date('Fecha',default=date.today(),required=True)
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
-	fiscal_printer_id = fields.Many2one('fpoc.fiscal_printer',string='Impresora Fiscal')
-	printerStatus = fields.Char('Printer Status',related='fiscal_printer_id.printerStatus')
-	fiscalStatus = fields.Char('Fiscal Status',related='fiscal_printer_id.fiscalStatus')
+	voucher_ids = fields.One2many(comodel_name='account.caja.diaria.voucher',inverse_name='caja_id')
+	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
+	
 
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
@@ -260,13 +294,16 @@ class account_caja_diaria_journal(models.Model):
 
 	caja_id = fields.Many2one('account.caja.diaria')
 	journal_id = fields.Many2one('account.journal')
-	debit = fields.Float('Débitos')
-	credit = fields.Float('Créditos')
-	previous_balance = fields.Float('Saldo Anterior')
-	end_balance = fields.Float('Saldo Final')
+	amount = fields.Float('Monto')
 
+class account_caja_diaria_voucher(models.Model):
+	_name = 'account.caja.diaria.voucher'
+	_description = 'Sumarized table for vouchers'
 
-
+	caja_id = fields.Many2one('account.caja.diaria')
+	journal_id = fields.Many2one('account.journal')
+	amount = fields.Float('Total')
+	
 class account_caja_diaria_journal_lineas(models.Model):
 	_name = 'account.caja.diaria.journal.lineas'
 	_description = 'Movimientos de caja journal lineas'
@@ -280,6 +317,15 @@ class account_caja_diaria_journal_lineas(models.Model):
 	cupon = fields.Char('Cupón')
 	debit = fields.Float('Débito')	
 	credit = fields.Float('Crédito')	
+
+class account_caja_diaria_money(models.Model):
+	_name = 'account.caja.diaria.money'
+	_description = 'Movimientos de caja journal lineas'
+
+	caja_id = fields.Many2one('account.caja.diaria',string='Caja')
+	value = fields.Float('Value')
+	quantity = fields.Float('Quantity')
+	amount = fields.Float('Amount')
 	
 	
 class account_cierre_z(models.Model):
