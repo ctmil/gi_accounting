@@ -263,6 +263,9 @@ class account_caja_diaria(models.Model):
 		transfer_ids=self.env['account.caja.diaria.transfer'].search([('caja_id','=',self.id)])
 		for transfer in transfer_ids:
 			transfer.unlink()
+		daily_ids=self.env['account.caja.diaria.close'].search([('caja_id','=',self.id)])
+		for daily in daily_ids:
+			daily.unlink()
 		#self.env['account.caja.diaria.voucher'].unlink(voucher_ids)
 		vouchers = self.env['account.voucher'].search([('state','in',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id)])
 		
@@ -300,6 +303,14 @@ class account_caja_diaria(models.Model):
 			for line in transfer.line_id:
 				amount = amount + line.debit
 			self.env['account.caja.diaria.transfer'].create({'caja_id':self.id, 'journal_id':transfer.journal_id.id, 'amount': amount})
+		dailys = self.env['account.cierre.z'].search([('state','in',['closed']),('fecha','=',self.date),('branch_id','=',self.branch_id.id)])
+		print 'dailys?', dailys
+		for daily in dailys:
+			self.env['account.caja.diaria.close'].create({'caja_id':self.id, 
+                                                 'daily_id':daily.id, 'doc_fiscales_monto': daily.doc_fiscales_monto,
+                                                 'doc_nc_monto': dialy.doc_nc_monto})
+
+
 
 	@api.one
 	def _compute_amount(self):
@@ -348,6 +359,7 @@ class account_caja_diaria(models.Model):
 	voucher_ids = fields.One2many(comodel_name='account.caja.diaria.voucher',inverse_name='caja_id')
 	transfer_ids = fields.One2many(comodel_name='account.caja.diaria.transfer',inverse_name='caja_id')
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
+	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
 	amount = fields.Float(compute='_compute_amount', string='Amount')
 	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Amount')    
 	amount_journals = fields.Float(compute='_compute_amount_journals', string='Amount') 
@@ -377,6 +389,15 @@ class account_caja_diaria_transfer(models.Model):
 	caja_id = fields.Many2one('account.caja.diaria')
 	journal_id = fields.Many2one('account.journal')
 	amount = fields.Float('Total')
+
+class account_caja_diaria_close(models.Model):
+	_name = 'account.caja.diaria.close'
+	_description = 'Sumarized table for daily close'
+
+	caja_id = fields.Many2one('account.caja.diaria')
+	daily_id = fields.Many2one('account.cierre.z')
+	doc_fiscales_monto = fields.Float('Venta Total')
+	doc_nc_monto= fields.Float('Credito Total')
 	
 class account_caja_diaria_journal_lineas(models.Model):
 	_name = 'account.caja.diaria.journal.lineas'
