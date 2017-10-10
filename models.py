@@ -276,13 +276,16 @@ class account_caja_diaria(models.Model):
 		invoices = self.env['account.invoice'].search([('state','in',['open','paid']),('date_invoice','=',self.date),('branch_id','=',self.branch_id.id)])
 		invoice_journals={}
 		for invoice in invoices:
+			amount= invoice.amount_total 
+			if invoice.journal_id.type in ['sale_refund']:
+				amount= -invoice.amount_total 
 			if invoice.journal_id.id in invoice_journals:
-					invoice_journals[invoice.journal_id.id]=invoice_journals[invoice.journal_id.id]+invoice.amount_total
+					invoice_journals[invoice.journal_id.id]=invoice_journals[invoice.journal_id.id]+amount
 			else:
-					invoice_journals[invoice.journal_id.id]=invoice.amount_total
-		print 'journals?', journals
+					invoice_journals[invoice.journal_id.id]=amount
+		print 'journals?', invoice_journals
 		for journal in invoice_journals:
-			if invoice_journals[journal]>0:
+			if invoice_journals[journal]!=0:
 				self.env['account.caja.diaria.journal'].create({'caja_id':self.id, 'journal_id':journal, 'amount': invoice_journals[journal]})
 		print 'invoices?', invoice_journals
 
@@ -304,7 +307,10 @@ class account_caja_diaria(models.Model):
 	def _compute_amount_journals(self):
 		self.amoun_journals = 0.0
 		for journal in self.journal_ids:
+			print 'journal type?',journal.journal_id.type
 			self.amount_journals = self.amount_journals + journal.amount  
+			#if journal.journal_id.type in ['sale_refund']:
+			#     self.amount_journals = self.amount_journals - journal.amount
 		return self.amount_journals
     
 	@api.model

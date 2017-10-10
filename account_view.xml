@@ -225,20 +225,6 @@
                                 </div>
                     </group>
 				</page>
-				<page string="Movimientos">
-					<field name="line_ids" string="Movimientos">
-						<tree string="Movimientos" readonly="1">
-							<field name="caja_journal_id" /> 
-							<field name="account_move_line_id" /> 
-							<field name="account_id" /> 
-							<field name="partner_id" /> 
-							<field name="invoice" /> 
-							<field name="cupon" /> 
-							<field name="debit" /> 
-							<field name="credit" /> 
-						</tree>
-					</field>
-				</page>
 			</notebook>
 		</form>
             </field>
