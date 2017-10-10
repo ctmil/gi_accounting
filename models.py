@@ -286,6 +286,27 @@ class account_caja_diaria(models.Model):
 				self.env['account.caja.diaria.journal'].create({'caja_id':self.id, 'journal_id':journal, 'amount': invoice_journals[journal]})
 		print 'invoices?', invoice_journals
 
+	@api.one
+	def _compute_amount(self):
+		self.amount = 0.0
+		for money in self.money_ids:
+			self.amount = self.amount + money.quantity * money.value  
+		return self.amount
+
+	@api.one
+	def _compute_amount_voucher(self):
+		self.amount_voucher = 0.0
+		for voucher in self.voucher_ids:
+			self.amount_voucher = self.amount_voucher + voucher.amount  
+		return self.amount_voucher
+    
+	@api.one
+	def _compute_amount_journals(self):
+		self.amoun_journals = 0.0
+		for journal in self.journal_ids:
+			self.amount_journals = self.amount_journals + journal.amount  
+		return self.amount_journals
+    
 	@api.model
 	def create(self,vals):
 		user = self.env['res.users'].browse(self.env.context['uid'])
@@ -301,8 +322,9 @@ class account_caja_diaria(models.Model):
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
 	voucher_ids = fields.One2many(comodel_name='account.caja.diaria.voucher',inverse_name='caja_id')
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
-	
-
+	amount = fields.Float(compute='_compute_amount', string='Amount')
+	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Amount')    
+	amount_journals = fields.Float(compute='_compute_amount_journals', string='Amount') 
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
 class account_caja_diaria_journal(models.Model):

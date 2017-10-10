@@ -176,6 +176,7 @@
 			<group>
 				<field name="date" />
 				<field name="branch_id" />
+                
 			</group>
 			
 			<notebook>
@@ -188,6 +189,12 @@
 							
 						</tree>
 					</field>
+                   <group class="oe_subtotal_footer oe_right" name="money_total">
+                          
+                          <div class="oe_subtotal_footer_separator oe_inline">
+                                    <field name="amount" />
+                                </div>
+                    </group>
 				</page>
                 <page string="Recibos">
 					<field name="voucher_ids" string="Recibos">
@@ -197,6 +204,12 @@
 							
 						</tree>
 					</field>
+                    <group class="oe_subtotal_footer oe_right" name="voucher_total">
+                          
+                          <div class="oe_subtotal_footer_separator oe_inline">
+                                    <field name="amount_voucher" />
+                                </div>
+                    </group>
 				</page>
 				<page string="Facturacion">
 					<field name="journal_ids" string="Métodos de Pago">
@@ -205,6 +218,12 @@
 							<field name="amount" string="Monto" />
 						</tree>
 					</field>
+                    <group class="oe_subtotal_footer oe_right" name="voucher_total">
+                          
+                          <div class="oe_subtotal_footer_separator oe_inline">
+                                    <field name="amount_journals" />
+                                </div>
+                    </group>
 				</page>
 				<page string="Movimientos">
 					<field name="line_ids" string="Movimientos">
