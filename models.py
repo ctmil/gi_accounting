@@ -156,6 +156,23 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
+		res=[0.1,
+             0.25,
+             0.5,
+             1.0,
+             2.0,
+             5.0,
+             10.0,
+             20.0,
+             50.0,
+             100.0,
+             200.0,
+             500.0]
+		money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id)])
+		for money in money_ids:
+			money.unlink()
+		for val in res:
+			self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
 	#	if self.fiscal_printer_id:
 	#		fp = self.fiscal_printer_id
 	#		if fp.printerStatus != 'Unknown':
@@ -322,10 +339,15 @@ class account_caja_diaria_money(models.Model):
 	_name = 'account.caja.diaria.money'
 	_description = 'Movimientos de caja journal lineas'
 
+	@api.one
+	def _compute_amount(self):
+		self.amount = self.quantity * self.value  
+		return self.amount
+    
 	caja_id = fields.Many2one('account.caja.diaria',string='Caja')
 	value = fields.Float('Value')
 	quantity = fields.Float('Quantity')
-	amount = fields.Float('Amount')
+	amount = fields.Float(compute='_compute_amount', string='Amount')
 	
 	
 class account_cierre_z(models.Model):

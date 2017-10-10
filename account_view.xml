@@ -182,9 +182,9 @@
                 <page string="Arqueo">
 					<field name="money_ids" string="Arqueo">
 						<tree string="Métodos de Pago" editable="bottom">
-							<field name="value" string="Valor" />
+							<field name="value" string="Valor" readonly="1"/>
 							<field name="quantity" string="Cantidad" />
-							<field name="amount" string="Monto" />
+							<field name="amount" string="Monto" readonly="1"/>
 							
 						</tree>
 					</field>
