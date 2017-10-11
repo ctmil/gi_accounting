@@ -303,12 +303,12 @@ class account_caja_diaria(models.Model):
 			for line in transfer.line_id:
 				amount = amount + line.debit
 			self.env['account.caja.diaria.transfer'].create({'caja_id':self.id, 'journal_id':transfer.journal_id.id, 'amount': amount})
-		dailys = self.env['account.cierre.z'].search([('state','in',['closed']),('fecha','=',self.date),('branch_id','=',self.branch_id.id)])
+		dailys = self.env['account.cierre.z'].search([('state','in',['close']),('fecha','=',self.date),('branch_id','=',self.branch_id.id)])
 		print 'dailys?', dailys
 		for daily in dailys:
 			self.env['account.caja.diaria.close'].create({'caja_id':self.id, 
                                                  'daily_id':daily.id, 'doc_fiscales_monto': daily.doc_fiscales_monto,
-                                                 'doc_nc_monto': dialy.doc_nc_monto})
+                                                 'doc_nc_monto': daily.doc_nc_monto})
 
 
 
@@ -433,7 +433,7 @@ class account_cierre_z(models.Model):
 	_description = 'Cierre Z'
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	name = fields.Char('Numero')
-	fecha = fields.Datetime('Fecha')
+	fecha = fields.Date('Fecha')
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('close','Cerrado')],default='draft')
 	cierre= fields.Char('Numero Cierre')
 	point_of_sale= fields.Char('Punto de Venta')

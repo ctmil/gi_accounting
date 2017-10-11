@@ -230,7 +230,7 @@
 						<tree string="Cierre Z" readonly="1">
 							<field name="daily_id" string="Cierre" />
 							<field name="doc_fiscales_monto" string="Venta" />
-                            <field name="doc_nc_monto" string="Venta" />
+                            <field name="doc_nc_monto" string="Credito" />
 						</tree>
 					</field>
 
