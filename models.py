@@ -156,32 +156,12 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
-		res=[0.1,
-             0.25,
-             0.5,
-             1.0,
-             2.0,
-             5.0,
-             10.0,
-             20.0,
-             50.0,
-             100.0,
-             200.0,
-             500.0]
+		res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
 		money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id)])
 		for money in money_ids:
 			money.unlink()
 		for val in res:
 			self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
-	#	if self.fiscal_printer_id:
-	#		fp = self.fiscal_printer_id
-	#		if fp.printerStatus != 'Unknown':
-	#			if 'Jornada fiscal cerrada' in fp.fiscalStatus:
-	#				fp.open_fiscal_journal()
-	#			else:
-	#				raise ValidationError('No se puede abrir la caja debido a que la impresora fiscal\ntiene status fiscal incorrecto.\nContacte administrador')
-	#		else:
-	#			raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
 
 
 	@api.one
@@ -254,6 +234,12 @@ class account_caja_diaria(models.Model):
 
 	@api.one
 	def compute_account_movimientos_caja(self):
+		money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id)])
+                if not money_ids:
+		    money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
+		    for val in money_res:
+			self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
+
 		invoice_ids=self.env['account.caja.diaria.journal'].search([('caja_id','=',self.id)])
 		for invoice in invoice_ids:
 			invoice.unlink()
@@ -351,7 +337,6 @@ class account_caja_diaria(models.Model):
 		
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
-	
 	date = fields.Date('Fecha',default=date.today(),required=True)
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
@@ -465,3 +450,20 @@ class account_cierre_z(models.Model):
 	disc_nc_monto_no_gravados = fields.Float('Monto Conceptos no Gravados')
 	disc_nc_monto_percepciones = fields.Float('Monto Percepciones')
        
+class account_caja_transferencia(models.Model):
+	_name = 'account.caja.transferencia'
+	_description = 'Transferencia de Cajas'
+
+
+	@api.multi
+	def unlink(self):
+		for transferencia in self:
+			if  self.state != 'draft':
+				raise ValidationError('No se puede borrar una transferencia ya  abierta')
+		return super(account_caja_diaria, self).unlink()
+
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
+	date = fields.Date('Fecha',default=date.today(),required=True)
+	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
+
+

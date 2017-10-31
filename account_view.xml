@@ -262,6 +262,8 @@
 			<field name="date" />
 			<field name="branch_id" />
 			<field name="state" />
+                        <field name="amount_journals" />
+                        <field name="amount_voucher" />
 		</tree>
             </field>
         </record>
@@ -388,7 +390,55 @@
             icon="STOCK_PRINT"/>
         
         <!-- Fin Cierre Z -->
-        
+
+     <!-- Transferencias -->
+
+        <record id="account_caja_transferencia_view" model="ir.ui.view">
+            <field name="name">Caja Transferencia Form</field>
+            <field name="model">account.caja.transferencia</field>
+            <field name="arch" type="xml">
+		<form string="Transferencia de caja">
+			<header>
+				<field  name="state" widget="statusbar" clickable="1"/>
+			</header>
+			<group>
+				<field name="date" />
+				<field name="branch_id" />
+			</group>
+			
+			<notebook>
+			</notebook>
+		</form>
+            </field>
+        </record>
+
+        <record id="account_caja_transferencia_tree" model="ir.ui.view">
+            <field name="name">Caja Transferencia Tree</field>
+            <field name="model">account.caja.transferencia</field>
+            <field name="arch" type="xml">
+		<tree string="Transferencias de Caja">
+			<field name="date" />
+			<field name="branch_id" />
+			<field name="state" />
+		</tree>
+            </field>
+        </record>
+
+        <record id="action_account_caja_transferencia" model="ir.actions.act_window">
+            <field name="name">Cajas Transferencias</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">account.caja.transferencia</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem
+            name="Cajas Transferencias"
+            parent="account.menu_finance_receivables"
+            action="action_account_caja_transferencia"
+            id="menu_account_caja_transferencia"
+            icon="STOCK_PRINT"/>
+     <!-- fin Transferencias -->     
         
     </data>
 </openerp>
