@@ -323,6 +323,26 @@ class account_caja_diaria(models.Model):
 		return self.amount_journals
 
 	@api.one
+	@api.depends('date')
+	def _compute_period(self):
+		print 'compute_periods'
+		args = [('date_start', '<=' ,self.date), ('date_stop', '>=', self.date)]
+		context = self.env.context
+		if context.get('company_id', False):
+			args.append(('company_id', '=', context['company_id']))
+		else:
+			uid = context.get('uid',False)
+			user = None
+			if uid:
+				user = self.env['res.users'].browse(uid)
+				company_id = user.company_id.id
+				args.append(('company_id', '=', company_id))
+		period_ids = self.env['account.period'].search(args)
+		print 'args?',args,period_ids
+		self.period_id=period_ids and period_ids[0].id
+
+
+	@api.one
 	@api.depends('transfer_ids')
 	def _compute_amount_transfer(self):
 		self.amount_transfer = 0.0
@@ -366,6 +386,7 @@ class account_caja_diaria(models.Model):
 	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
 	amount_initial = fields.Float('Initial Amount')
 	amount_final = fields.Float('Final Amount')
+	period_id = fields.Many2one(compute='_compute_period', comodel_name='account.period',string='Period',store=True)
 	amount_difference = fields.Float(compute='_compute_difference', string='Difference Amount',store=True)
 	amount = fields.Float(compute='_compute_amount', string='Money Amount',store=True)
 	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Voucher Amount',store=True)    

@@ -175,6 +175,7 @@
 			</header>
 			<group>
 				<field name="date" />
+                <field name="period_id"/>
 				<field name="branch_id" />
                 <field name="amount_initial" />
 			</group>
@@ -288,10 +289,11 @@
                     <filter icon="terp-document-new" string="Cerrada" domain="[('state','=','closed')]" help="Cajas Cerradas"/>
                     <filter icon="terp-dolar_ok!" string="Con Diferencia" domain="[('amount_difference','&lt;',0),('amount_difference','&gt;',0)]" help="Cajas con Diferencias" name="unreconciled"/>
                     <separator/>
-                    <!--<field name="period_id" context="{'period_id':self}" widget="selection"/> -->
+                    <field name="period_id" context="{'period_id':self}" widget="selection"/>
                     <group expand="0" string="Group By">
                         <filter string="Branch" icon="terp-partner" domain="[]" context="{'group_by':'branch_id'}"/>
-                        <!--<filter string="Period" icon="terp-go-month" domain="[]" context="{'group_by':'period_id'}"/>-->
+                        
+                        <filter string="Period" icon="terp-go-month" domain="[]" context="{'group_by':'period_id'}"/>
                     </group>
                 </search>
             </field>
@@ -303,11 +305,12 @@
             <field name="arch" type="xml">
             <tree string="Cajas Diarias">
 			<field name="date" />
+            <field name="period_id"/>
 			<field name="branch_id" />
 			<field name="state" />
-                        <field name="amount" />
-                        <field name="amount_journals" />
-                        <field name="amount_voucher" />
+            <field name="amount" />
+            <field name="amount_journals" />
+            <field name="amount_voucher" />
 	     	</tree>
             </field>
         </record>
