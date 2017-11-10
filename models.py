@@ -316,10 +316,7 @@ class account_caja_diaria(models.Model):
 	def _compute_amount_journals(self):
 		self.amount_journals = 0.0
 		for journal in self.journal_ids:
-			print 'journal type?',journal.journal_id.type
 			self.amount_journals = self.amount_journals + journal.amount  
-			#if journal.journal_id.type in ['sale_refund']:
-			#     self.amount_journals = self.amount_journals - journal.amount
 		return self.amount_journals
 
 	@api.one
@@ -329,6 +326,22 @@ class account_caja_diaria(models.Model):
 			self.amount_transfer = self.amount_transfer + transfer.amount  
 		return self.amount_transfer
 
+	@api.one
+	def _compute_difference(self):
+		self.amount_difference = 0.0
+		amount = 0.0
+		for money in self.money_ids:
+		    amount = amount + money.quantity * money.value  
+		amount_voucher = 0.0
+		for voucher in self.voucher_ids:
+                    if 'Efectivo' in voucher.journal_id.name:
+		        amount_voucher = amount_voucher + voucher.amount  
+		amount_transfer = 0.0
+		for transfer in self.transfer_ids:
+		    amount_transfer = amount_transfer + transfer.amount  
+                self.amount_difference = self.amount_initial -amount - amount_transfer + amount_voucher
+                return self.amount_difference
+                
 	@api.model
 	def create(self,vals):
 		user = self.env['res.users'].browse(self.env.context['uid'])
@@ -345,10 +358,13 @@ class account_caja_diaria(models.Model):
 	transfer_ids = fields.One2many(comodel_name='account.caja.diaria.transfer',inverse_name='caja_id')
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
 	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
-	amount = fields.Float(compute='_compute_amount', string='Amount')
-	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Amount')    
-	amount_journals = fields.Float(compute='_compute_amount_journals', string='Amount') 
-	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Amount')
+	amount_initial = fields.Float('Initial Amount')
+	amount_final = fields.Float('Final Amount')
+	amount_difference = fields.Float(compute='_compute_difference', string='Difference Amount')
+	amount = fields.Float(compute='_compute_amount', string='Money Amount')
+	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Voucher Amount')    
+	amount_journals = fields.Float(compute='_compute_amount_journals', string='Billing Amount') 
+	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Transfers Amount')
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
 class account_caja_diaria_journal(models.Model):

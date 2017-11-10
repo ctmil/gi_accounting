@@ -176,7 +176,7 @@
 			<group>
 				<field name="date" />
 				<field name="branch_id" />
-                
+                <field name="amount_initial" />
 			</group>
 			
 			<notebook>
@@ -191,9 +191,16 @@
 					</field>
                    <group class="oe_subtotal_footer oe_right" name="money_total">
                           
-                          <div class="oe_subtotal_footer_separator oe_inline">
+                          
+                                    
+                                    <field name="amount_initial" />
+                                    <field name="amount_voucher" />
+                                    <field name="amount_transfer" />
                                     <field name="amount" />
-                                </div>
+                                    
+                                    <field name="amount_difference" />
+                                    <field name="amount_final" />
+                                
                     </group>
 				</page>
                 <page string="Recibos">
@@ -254,6 +261,41 @@
             </field>
         </record>
 
+        <record id="account_caja_diaria_graph" model="ir.ui.view">
+            <field name="name">account.caja.diaria.graph</field>
+            <field name="model">account.caja.diaria</field>
+            <field name="arch" type="xml">
+                <graph string="Caja Statistics" type="bar">
+                    <field name="branch_id"/>
+                    <field name="amount_journals" operator="+"/>
+                    <field name="amount_voucher" operator="+"/>
+                </graph>
+            </field>
+        </record>
+        
+        <record id="account_caja_diaria_filter" model="ir.ui.view">
+            <field name="name">Caja Diaria</field>
+            <field name="model">account.caja.diaria</field>
+            <field name="arch" type="xml">
+                <search string="Search Caja Diaria">
+                    <field name="branch_id"/>
+                    <field name="date"/>
+                    <filter icon="terp-document-new" string="Borrador" domain="[('state','=','draft')]" help="Cajas en Borrador"/>
+                    <separator/>
+                    <filter icon="terp-document-new" string="Abierto" domain="[('state','=','open')]" help="Cajas Abiertas"/>
+                    <separator/>
+                    <filter icon="terp-document-new" string="Cerrada" domain="[('state','=','closed')]" help="Cajas Cerradas"/>
+                    <filter icon="terp-dolar_ok!" string="Con Diferencia" domain="[('amount_difference','&lt;',0),('amount_difference','&gt;',0)]" help="Cajas con Diferencias" name="unreconciled"/>
+                    <separator/>
+                    <!--<field name="period_id" context="{'period_id':self}" widget="selection"/> -->
+                    <group expand="0" string="Group By">
+                        <filter string="Branch" icon="terp-partner" domain="[]" context="{'group_by':'branch_id'}"/>
+                        <!--<filter string="Period" icon="terp-go-month" domain="[]" context="{'group_by':'period_id'}"/>-->
+                    </group>
+                </search>
+            </field>
+        </record>
+        
         <record id="account_caja_diaria_tree" model="ir.ui.view">
             <field name="name">Caja Diaria Tree</field>
             <field name="model">account.caja.diaria</field>
@@ -273,7 +315,7 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">account.caja.diaria</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,graph</field>
             <!-- field name="target">new</field -->
             <!-- field name="view_id" ref="account_caja_diaria_view"/ -->
         </record>
