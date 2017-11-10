@@ -299,6 +299,7 @@ class account_caja_diaria(models.Model):
 
 
 	@api.one
+	@api.depends('money_ids')
 	def _compute_amount(self):
 		self.amount = 0.0
 		for money in self.money_ids:
@@ -306,6 +307,7 @@ class account_caja_diaria(models.Model):
 		return self.amount
 
 	@api.one
+	@api.depends('voucher_ids')
 	def _compute_amount_voucher(self):
 		self.amount_voucher = 0.0
 		for voucher in self.voucher_ids:
@@ -313,6 +315,7 @@ class account_caja_diaria(models.Model):
 		return self.amount_voucher
     
 	@api.one
+	@api.depends('journal_ids')
 	def _compute_amount_journals(self):
 		self.amount_journals = 0.0
 		for journal in self.journal_ids:
@@ -320,6 +323,7 @@ class account_caja_diaria(models.Model):
 		return self.amount_journals
 
 	@api.one
+	@api.depends('transfer_ids')
 	def _compute_amount_transfer(self):
 		self.amount_transfer = 0.0
 		for transfer in self.transfer_ids:
@@ -327,6 +331,7 @@ class account_caja_diaria(models.Model):
 		return self.amount_transfer
 
 	@api.one
+	@api.depends('transfer_ids','money_ids','voucher_ids','journal_ids')
 	def _compute_difference(self):
 		self.amount_difference = 0.0
 		amount = 0.0
@@ -347,6 +352,7 @@ class account_caja_diaria(models.Model):
 		user = self.env['res.users'].browse(self.env.context['uid'])
 		vals['partner_id'] = user.partner_id.id
 	        return super(account_caja_diaria, self).create(vals)
+        
 		
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
@@ -360,11 +366,11 @@ class account_caja_diaria(models.Model):
 	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
 	amount_initial = fields.Float('Initial Amount')
 	amount_final = fields.Float('Final Amount')
-	amount_difference = fields.Float(compute='_compute_difference', string='Difference Amount')
-	amount = fields.Float(compute='_compute_amount', string='Money Amount')
-	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Voucher Amount')    
-	amount_journals = fields.Float(compute='_compute_amount_journals', string='Billing Amount') 
-	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Transfers Amount')
+	amount_difference = fields.Float(compute='_compute_difference', string='Difference Amount',store=True)
+	amount = fields.Float(compute='_compute_amount', string='Money Amount',store=True)
+	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Voucher Amount',store=True)    
+	amount_journals = fields.Float(compute='_compute_amount_journals', string='Billing Amount',store=True) 
+	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Transfers Amount',store=True)
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
 class account_caja_diaria_journal(models.Model):

@@ -267,6 +267,7 @@
             <field name="arch" type="xml">
                 <graph string="Caja Statistics" type="bar">
                     <field name="branch_id"/>
+                    <field name="amount" operator="+"/>
                     <field name="amount_journals" operator="+"/>
                     <field name="amount_voucher" operator="+"/>
                 </graph>
@@ -300,13 +301,14 @@
             <field name="name">Caja Diaria Tree</field>
             <field name="model">account.caja.diaria</field>
             <field name="arch" type="xml">
-		<tree string="Cajas Diarias">
+            <tree string="Cajas Diarias">
 			<field name="date" />
 			<field name="branch_id" />
 			<field name="state" />
+                        <field name="amount" />
                         <field name="amount_journals" />
                         <field name="amount_voucher" />
-		</tree>
+	     	</tree>
             </field>
         </record>
 
