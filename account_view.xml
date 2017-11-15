@@ -251,29 +251,14 @@
                 <page string="Transferencias">
 					<field name="transfer_ids" string="Transferencias">
 						<tree string="Transferencias" >
-							<field name="caja_dst" string="Caja Destino" />
-							<field name="amount" string="Monto" />
+							<field name="box_dst" />
+                            <field name="amount" />
+                            <field name="state" />
+							<!--<field name="amount" string="Monto" />
                             <field name="notes" string="Notas" />
-                            <field name="state" string="Estado" />
+                            <field name="state" string="Estado" />-->
 						</tree>
-                        <form string="Transferencias" >
-                            <header groups="base.group_user">
-                                        <field name="state" widget="statusbar" statusbar_colors='{"exception":"red","cancel":"red"}' clickable="1"/>
-                                    </header>
-                                    <sheet>
-                                    <group>
-							<field name="caja_dst" string="Caja Destino" />
-							<field name="amount" string="Monto" />
-                            <field name="notes" string="Notas" />
-                                    </group>
-                                    <div class="oe_clear"/>
-                            <field name="notes" class="oe_inline" placeholder="Notas..."/>
-                                    </sheet>
-                            <div class="oe_chatter">
-                                <field name="message_follower_ids" widget="mail_followers"/>
-                                <field name="message_ids" widget="mail_thread"/>
-                            </div>
-						</form>
+                        
 					</field>
                     <group class="oe_subtotal_footer oe_right" name="voucher_total">
                           
@@ -499,9 +484,9 @@
 
      <!-- Transferencias -->
 
-        <record id="account_caja_transferencia_view" model="ir.ui.view">
-            <field name="name">Caja Transferencia</field>
-            <field name="model">account.caja.diaria.transfer</field>
+        <record id="account_box_transfer_view" model="ir.ui.view">
+            <field name="name">Transferencia</field>
+            <field name="model">account.box.transfer</field>
             <field name="arch" type="xml">
 		<form string="Transferencia de caja">
 			<header>
@@ -509,11 +494,10 @@
 			</header>
             <sheet>
 			<group>
-				<field name="date" />
-                <field name="caja_id" />
-                <field name="caja_dst" />
-                <field name="amount" />
-				<field name="notes" />
+                <field name="box_id" />
+                <field name="box_dst" />
+				<field name="amount" />
+                
 			</group>
 			
 			<notebook>
@@ -529,34 +513,33 @@
             </field>
         </record>
 
-        <record id="account_caja_transferencia_tree" model="ir.ui.view">
+        <record id="account_box_transfer_tree" model="ir.ui.view">
             <field name="name">Caja Transferencia</field>
-            <field name="model">account.caja.diaria.transfer</field>
+            <field name="model">account.box.transfer</field>
             <field name="arch" type="xml">
 		<tree string="Transferencias de Caja">
 			<field name="date" />
-                <field name="caja_id" />
-                <field name="caja_dst" />
-                <field name="amount" />
-				<field name="notes" />
-			    <field name="state" />
+                <field name="box_id" />
+                <field name="box_dst" />
+				<field name="amount" />
+                <field name="state" />
 		</tree>
             </field>
         </record>
 
-        <record id="action_account_caja_transferencia" model="ir.actions.act_window">
+        <record id="action_account_box_transfer" model="ir.actions.act_window">
             <field name="name">Cajas Transferencias</field>
             <field name="type">ir.actions.act_window</field>
-            <field name="res_model">account.caja.diaria.transfer</field>
+            <field name="res_model">account.box.transfer</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
         </record>
 
         <menuitem
-            name="Cajas Transferencias"
+            name="Transferencias"
             parent="account.menu_finance_receivables"
-            action="action_account_caja_transferencia"
-            id="menu_account_caja_transferencia"
+            action="action_account_box_transfer"
+            id="menu_account_box_transfer"
             icon="STOCK_PRINT"/>
      <!-- fin Transferencias -->  
         
@@ -570,6 +553,11 @@
 			</header>
             <sheet>
 			<group>
+                <field name="name" />
+                <label for="boxname" class="oe_edit_only"/>
+                <h1>
+                    <field name="boxname" class="oe_inline" />
+                </h1>
 				<field name="branch_id" />
                 <field name="journal_id" />
 			</group>
@@ -593,6 +581,7 @@
             <field name="arch" type="xml">
 		<tree string="Caja">
 			    <field name="branch_id" />
+                <field name="name" />
                 <field name="journal_id" />
 				<field name="notes" />
 		</tree>

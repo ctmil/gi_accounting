@@ -144,6 +144,19 @@ class account_caja(models.Model):
 	_name = 'account.box'
 	_description = 'Box'
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
+	
+	@api.one
+	@api.depends('boxname')
+	def _box_name_get(self):
+
+		for box in self:
+			name = box.boxname
+			if box.branch_id.name:
+				name = box.branch_id.name + ' / ' + name
+			self.name=name
+
+	name = fields.Char(compute='_box_name_get', string='Name', store=True)
+	boxname = fields.Char('Nombre', track_visibility='onchange')
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	diaria_ids = fields.One2many(comodel_name='account.caja.diaria',inverse_name='box_id')
 	journal_id = fields.Many2one('account.journal', string='Diario de Efectivo')
@@ -180,73 +193,7 @@ class account_caja_diaria(models.Model):
 			self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
 
 
-	@api.one
-	def compute_account_movimientos_caja_old(self):
-		account_move_lines = self.env['account.'].search([('date','=',self.date),('branch_id','=',self.branch_id.id)])
-		journal_amounts = {}
-		for move_line in account_move_lines:	
-			if move_line.journal_id.type in ['cash','bank']:
-				if move_line.debit > 0 and move_line.partner_id:
-					account_move = move_line.move_id
-					credit_line = None
-					invoice_id = None
-					invoices = self.env['account.invoice'].search([('partner_id','=',move_line.partner_id.id),\
-						('state','in',['open','paid']),('date_invoice','<=',self.date),('branch_id','=',self.branch_id.id)])
-					for invoice in invoices:
-						for payment_line in invoice.payment_ids:
-							if payment_line.move_id.id == move_line.move_id.id:
-								invoice_id = invoice.id
-								break
-						if invoice_id:
-							break		
-					vals = {
-						'caja_id': self.id,		
-						'caja_journal_id': move_line.journal_id.id,		
-						'account_move_line_id': move_line.id,
-						'account_id': move_line.account_id.id,
-						'partner_id': move_line.partner_id.id,
-						'debit': move_line.debit,
-						'credit': move_line.credit,
-						}
-					if invoice_id:
-						vals['invoice'] = invoice_id
-					voucher_id = None
-					vouchers = self.env['account.voucher'].search([('partner_id','=',move_line.partner_id.id),\
-						('state','=',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id)])
-					for voucher in vouchers:
-						if voucher.nro_cupon != '':
-							if move_line.id in voucher.move_ids.ids:
-								voucher_id = voucher
-					if voucher_id and voucher_id.nro_cupon:
-						vals['cupon'] = voucher_id.nro_cupon
-					#saldo = move_line.journal_id._get_account_balance(self.date)
-					journal_amts = journal_amounts.get(move_line.journal_id.id,[0,0])
-					journal_amounts[move_line.journal_id.id] = [journal_amts[0] + move_line.debit, journal_amts[1] + move_line.credit]
-					return_id = self.env['account.caja.diaria.journal.lineas'].create(vals)
-		self.state = 'done'
-		for key, value in journal_amounts.iteritems():
-			vals = {
-				'caja_id': self.id,
-				'journal_id': key,
-				'debit': value[0],
-				'credit': value[1],
-				}
-			journal = self.env['account.journal'].browse(key)
-			yesterday = fields.Date.from_string(self.date) - timedelta(days=1)
-			vals['previous_balance'] = journal._get_account_balance(yesterday)
-			vals['end_balance'] = journal._get_account_balance(self.date)
-			return_id = self.env['account.caja.diaria.journal'].create(vals)
-		if self.fiscal_printer_id:
-			fp = self.fiscal_printer_id
-			if fp.printerStatus != 'Unknown':
-				if 'Jornada fiscal abierta' in fp.fiscalStatus:
-					fp.close_fiscal_journal()
-				else:
-					raise ValidationError('No se puede cerrar la caja debido a que la impresora fiscal\ntiene status fiscal incorrecto.\nContacte administrador')
-			else:
-				raise ValidationError('No se puede abrir la caja debido a que\nla impresora fiscal no tiene status')
-		#import pdb;pdb.set_trace()
-	        #return self.env['report'].get_action(self, 'gi_accounting.report_movimientos_caja')
+
 
 	@api.one
 	def compute_account_movimientos_caja(self):
@@ -296,15 +243,12 @@ class account_caja_diaria(models.Model):
 			if invoice_journals[journal]!=0:
 				self.env['account.caja.diaria.journal'].create({'caja_id':self.id, 'journal_id':journal, 'amount': invoice_journals[journal]})
 		print 'invoices?', invoice_journals
-		transfer_journal_id = self.env['account.journal'].search([('name','ilike','transferencia efectivo')])
-		transfers = self.env['account.move'].search([('state','in',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id),('journal_id','in',transfer_journal_id.ids)])
+		
+		transfers = self.env['account.box.transfer'].search([('state','in',['done']),('date','=',self.date),('box_id','=',self.box_id.id)])
 		print 'transfers?', transfers
 		transferences={}
 		for transfer in transfers:
-			amount = 0.0
-			for line in transfer.line_id:
-				amount = amount + line.debit
-			self.env['account.caja.diaria.transfer'].create({'caja_id':self.id, 'journal_id':transfer.journal_id.id, 'amount': amount})
+			self.env['account.caja.diaria.transfer'].create({'caja_id':self.id, 'transfer_id':transfer.id})
 		dailys = self.env['account.cierre.z'].search([('state','in',['close']),('fecha','=',self.date),('branch_id','=',self.branch_id.id)])
 		print 'dailys?', dailys
 		for daily in dailys:
@@ -504,10 +448,23 @@ class account_cierre_z(models.Model):
 	disc_nc_monto_iva = fields.Float('Monto Iva')
 	disc_nc_monto_no_gravados = fields.Float('Monto Conceptos no Gravados')
 	disc_nc_monto_percepciones = fields.Float('Monto Percepciones')
-       
+
+
 class account_caja_transferencia(models.Model):
 	_name = 'account.caja.diaria.transfer'
 	_description = 'Transferencia de Cajas'
+	_inherit = ['mail.thread', 'ir.needaction_mixin']
+	
+	caja_id = fields.Many2one('account.caja.diaria')
+	transfer_id = fields.Many2one('account.box.transfer')
+	amount = fields.Float('Amount',related='transfer_id.amount')
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],related='transfer_id.state')
+	box_dst = fields.Many2one('account.box','Box Destination',related='transfer_id.box_dst')
+
+	
+class account_box_transfer(models.Model):
+	_name = 'account.box.transfer'
+	_description = 'Box Transfer'
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
 
 	@api.multi
@@ -519,8 +476,8 @@ class account_caja_transferencia(models.Model):
 
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='always')
 	date = fields.Date('Fecha',default=date.today(),required=True)
-	caja_id = fields.Many2one('account.caja.diaria',string='Caja')
-	caja_dst = fields.Many2one('account.caja.diaria',string='Caja Destino')
+	box_id = fields.Many2one('account.box',string='Caja Origen')
+	box_dst = fields.Many2one('account.box',string='Caja Destino')
 	amount= fields.Float('Importe',track_visibility='onchange')
 	notes = fields.Text('Notas', track_visibility='onchange')
 
