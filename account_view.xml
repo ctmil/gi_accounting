@@ -251,6 +251,7 @@
                 <page string="Transferencias">
 					<field name="transfer_ids" string="Transferencias">
 						<tree string="Transferencias" >
+                            <field name="date" />
 							<field name="box_dst" />
                             <field name="amount" />
                             <field name="state" />
@@ -494,6 +495,7 @@
 			</header>
             <sheet>
 			<group>
+                <field name="date" />
                 <field name="box_id" />
                 <field name="box_dst" />
 				<field name="amount" />
@@ -519,6 +521,7 @@
             <field name="arch" type="xml">
 		<tree string="Transferencias de Caja">
 			<field name="date" />
+                <field name="date" />
                 <field name="box_id" />
                 <field name="box_dst" />
 				<field name="amount" />
