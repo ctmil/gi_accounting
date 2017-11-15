@@ -460,6 +460,7 @@ class account_caja_transferencia(models.Model):
 	amount = fields.Float('Amount',related='transfer_id.amount')
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],related='transfer_id.state')
 	box_dst = fields.Many2one('account.box','Box Destination',related='transfer_id.box_dst')
+	date = fields.Date('Fecha',related='transfer_id.date')
 
 	
 class account_box_transfer(models.Model):
