@@ -140,11 +140,27 @@ class account_invoice(models.Model):
 				if resp:
 					res['value']['journal_id'] = resp.journal_id.id
 		return res
-		
+class account_caja(models.Model):
+	_name = 'account.box'
+	_description = 'Box'
+	_inherit = ['mail.thread', 'ir.needaction_mixin']
+	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
+	diaria_ids = fields.One2many(comodel_name='account.caja.diaria',inverse_name='box_id')
+	journal_id = fields.Many2one('account.journal', string='Diario de Efectivo')
+	notes = fields.Text('Notas', track_visibility='onchange')
+	
+	
+	@api.multi
+	def unlink(self):
+		for caja in self:
+			if  self.diaria_ids:
+				raise ValidationError('No se puede borrar una caja con cajas diarias')
+		return super(account_caja, self).unlink()
+	
 class account_caja_diaria(models.Model):
 	_name = 'account.caja.diaria'
 	_description = 'Caja Diaria'
-
+	_inherit = ['mail.thread', 'ir.needaction_mixin']
 
 	@api.multi
 	def unlink(self):
@@ -378,12 +394,14 @@ class account_caja_diaria(models.Model):
 	partner_id = fields.Many2one('res.partner',string='Cliente')
 	date = fields.Date('Fecha',default=date.today(),required=True)
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
+	box_id = fields.Many2one('account.box',string='Caja',)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
 	voucher_ids = fields.One2many(comodel_name='account.caja.diaria.voucher',inverse_name='caja_id')
 	transfer_ids = fields.One2many(comodel_name='account.caja.diaria.transfer',inverse_name='caja_id')
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
 	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
+	vale_ids = fields.One2many(comodel_name='account.caja.vale',inverse_name='caja_id')
 	amount_initial = fields.Float('Initial Amount')
 	amount_final = fields.Float('Final Amount')
 	period_id = fields.Many2one(compute='_compute_period', comodel_name='account.period',string='Period',store=True)
@@ -392,6 +410,7 @@ class account_caja_diaria(models.Model):
 	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Voucher Amount',store=True)    
 	amount_journals = fields.Float(compute='_compute_amount_journals', string='Billing Amount',store=True) 
 	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Transfers Amount',store=True)
+	notes = fields.Text('Notas', track_visibility='onchange')
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
 class account_caja_diaria_journal(models.Model):
@@ -410,13 +429,6 @@ class account_caja_diaria_voucher(models.Model):
 	journal_id = fields.Many2one('account.journal')
 	amount = fields.Float('Total')
 	
-class account_caja_diaria_transfer(models.Model):
-	_name = 'account.caja.diaria.transfer'
-	_description = 'Sumarized table for transfers'
-
-	caja_id = fields.Many2one('account.caja.diaria')
-	journal_id = fields.Many2one('account.journal')
-	amount = fields.Float('Total')
 
 class account_caja_diaria_close(models.Model):
 	_name = 'account.caja.diaria.close'
@@ -494,19 +506,42 @@ class account_cierre_z(models.Model):
 	disc_nc_monto_percepciones = fields.Float('Monto Percepciones')
        
 class account_caja_transferencia(models.Model):
-	_name = 'account.caja.transferencia'
+	_name = 'account.caja.diaria.transfer'
 	_description = 'Transferencia de Cajas'
-
+	_inherit = ['mail.thread', 'ir.needaction_mixin']
 
 	@api.multi
 	def unlink(self):
 		for transferencia in self:
 			if  self.state != 'draft':
 				raise ValidationError('No se puede borrar una transferencia ya  abierta')
-		return super(account_caja_diaria, self).unlink()
+		return super(account_caja_transferencia, self).unlink()
 
-	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='always')
 	date = fields.Date('Fecha',default=date.today(),required=True)
-	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
+	caja_id = fields.Many2one('account.caja.diaria',string='Caja')
+	caja_dst = fields.Many2one('account.caja.diaria',string='Caja Destino')
+	amount= fields.Float('Importe',track_visibility='onchange')
+	notes = fields.Text('Notas', track_visibility='onchange')
+
+	
+class account_caja_vale(models.Model):
+	_name = 'account.caja.vale'
+	_description = 'Caja Vale'
+	_inherit = ['mail.thread', 'ir.needaction_mixin']
+	
+	@api.multi
+	def unlink(self):
+		for vale in self:
+			if  self.state != 'draft':
+				raise ValidationError('No se puede borrar un vale abierto')
+		return super(account_caja_vale, self).unlink()
+
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='always')
+	date = fields.Date('Fecha',default=date.today(),required=True,track_visibility='always')
+	caja_id = fields.Many2one('account.caja.diaria',string='Caja')
+	user_id =fields.Many2one('res.users', string='Usuario', required=True, track_visibility='onchange')
+	amount= fields.Float('Importe',track_visibility='onchange')
+	notes = fields.Text('Notas', track_visibility='onchange')
 
 

@@ -173,8 +173,10 @@
 				
 				<field  name="state" widget="statusbar" clickable="1"/>
 			</header>
+            <sheet>
 			<group>
 				<field name="date" />
+                <field name="box_id" />
                 <field name="period_id"/>
 				<field name="branch_id" />
                 <field name="amount_initial" />
@@ -183,30 +185,33 @@
 			<notebook>
                 <page string="Arqueo">
 					<field name="money_ids" string="Arqueo">
-						<tree string="Métodos de Pago" editable="bottom">
+						<tree string="Métodos de Pago" editable="bottom" create="false" delete="false">
 							<field name="value" string="Valor" readonly="1"/>
 							<field name="quantity" string="Cantidad" />
 							<field name="amount" string="Monto" readonly="1"/>
 							
 						</tree>
 					</field>
-                   <group class="oe_subtotal_footer oe_right" name="money_total">
+                   <group class="oe_subtotal_footer oe_right" colspan="2" name="money_total">
                           
                           
                                     
-                                    <field name="amount_initial" />
-                                    <field name="amount_voucher" />
-                                    <field name="amount_transfer" />
-                                    <field name="amount" />
+                                    <field name="amount_initial" widget='monetary'/>
+                                    <field name="amount_voucher" widget='monetary'/>
+                                    <field name="amount_transfer" widget='monetary'/>
+                                    <field name="amount" widget='monetary'/>
                                     
-                                    <field name="amount_difference" />
-                                    <field name="amount_final" />
+                                    <field name="amount_difference" widget='monetary'/>
+                                    <field name="amount_final" widget='monetary'/>
+                                    
                                 
-                    </group>
+                    </group> 
+                    <div class="oe_clear"/>
+                            <field name="notes" class="oe_inline" placeholder="Notas..."/>
 				</page>
                 <page string="Recibos">
 					<field name="voucher_ids" string="Recibos">
-						<tree string="Recibos" >
+						<tree string="Recibos" delete="false" create="false">
 							<field name="journal_id" string="Diario" />
 							<field name="amount" string="Monto" />
 							
@@ -221,7 +226,7 @@
 				</page>
 				<page string="Facturacion">
 					<field name="journal_ids" string="Métodos de Pago">
-						<tree string="Métodos de Pago" readonly="1">
+						<tree string="Métodos de Pago" readonly="1" delete="false" create="false">
 							<field name="journal_id" string="Método de Pago" />
 							<field name="amount" string="Monto" />
 						</tree>
@@ -235,7 +240,7 @@
                 </page>
                 <page string="Cierre Z">
 					<field name="close_ids" string="Cierre Z">
-						<tree string="Cierre Z" readonly="1">
+						<tree string="Cierre Z" readonly="1" delete="false" create="false">
 							<field name="daily_id" string="Cierre" />
 							<field name="doc_fiscales_monto" string="Venta" />
                             <field name="doc_nc_monto" string="Credito" />
@@ -245,10 +250,30 @@
                 </page>
                 <page string="Transferencias">
 					<field name="transfer_ids" string="Transferencias">
-						<tree string="Transferencias" readonly="1">
-							<field name="journal_id" string="Transferencia" />
+						<tree string="Transferencias" >
+							<field name="caja_dst" string="Caja Destino" />
 							<field name="amount" string="Monto" />
+                            <field name="notes" string="Notas" />
+                            <field name="state" string="Estado" />
 						</tree>
+                        <form string="Transferencias" >
+                            <header groups="base.group_user">
+                                        <field name="state" widget="statusbar" statusbar_colors='{"exception":"red","cancel":"red"}' clickable="1"/>
+                                    </header>
+                                    <sheet>
+                                    <group>
+							<field name="caja_dst" string="Caja Destino" />
+							<field name="amount" string="Monto" />
+                            <field name="notes" string="Notas" />
+                                    </group>
+                                    <div class="oe_clear"/>
+                            <field name="notes" class="oe_inline" placeholder="Notas..."/>
+                                    </sheet>
+                            <div class="oe_chatter">
+                                <field name="message_follower_ids" widget="mail_followers"/>
+                                <field name="message_ids" widget="mail_thread"/>
+                            </div>
+						</form>
 					</field>
                     <group class="oe_subtotal_footer oe_right" name="voucher_total">
                           
@@ -257,7 +282,39 @@
                                 </div>
                     </group>
                 </page>
+                <page string="Vales">
+					<field name="vale_ids" string="Vales">
+						<tree string="Vales" >
+							<field name="user_id" string="User" />
+							<field name="amount" string="Monto" />
+                            <field name="state" string="Estado" />
+						</tree>
+                        <form string="Vales" >
+                            <header groups="base.group_user">
+                                        <field name="state" widget="statusbar" statusbar_colors='{"exception":"red","cancel":"red"}' clickable="1"/>
+                                    </header>
+                                    <sheet>
+                                    <group>
+							<field name="user_id" string="User" />
+							<field name="amount" string="Monto" />
+                            
+                                    </group>
+                                    <div class="oe_clear"/>
+                            <field name="notes" class="oe_inline" placeholder="Notas..."/>
+                                    </sheet>
+        <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+						</form>
+					</field>
+                </page>
 			</notebook>
+        </sheet>
+        <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
 		</form>
             </field>
         </record>
@@ -267,7 +324,7 @@
             <field name="model">account.caja.diaria</field>
             <field name="arch" type="xml">
                 <graph string="Caja Statistics" type="bar">
-                    <field name="branch_id"/>
+                    <field name="box_id"/>
                     <field name="amount" operator="+"/>
                     <field name="amount_journals" operator="+"/>
                     <field name="amount_voucher" operator="+"/>
@@ -281,6 +338,7 @@
             <field name="arch" type="xml">
                 <search string="Search Caja Diaria">
                     <field name="branch_id"/>
+                    <field name="box_id" />
                     <field name="date"/>
                     <filter icon="terp-document-new" string="Borrador" domain="[('state','=','draft')]" help="Cajas en Borrador"/>
                     <separator/>
@@ -292,7 +350,7 @@
                     <field name="period_id" context="{'period_id':self}" widget="selection"/>
                     <group expand="0" string="Group By">
                         <filter string="Branch" icon="terp-partner" domain="[]" context="{'group_by':'branch_id'}"/>
-                        
+                        <filter string="Caja" icon="terp-partner" domain="[]" context="{'group_by':'box_id'}"/>
                         <filter string="Period" icon="terp-go-month" domain="[]" context="{'group_by':'period_id'}"/>
                     </group>
                 </search>
@@ -307,6 +365,7 @@
 			<field name="date" />
             <field name="period_id"/>
 			<field name="branch_id" />
+            <field name="box_id" />
 			<field name="state" />
             <field name="amount" />
             <field name="amount_journals" />
@@ -441,32 +500,46 @@
      <!-- Transferencias -->
 
         <record id="account_caja_transferencia_view" model="ir.ui.view">
-            <field name="name">Caja Transferencia Form</field>
-            <field name="model">account.caja.transferencia</field>
+            <field name="name">Caja Transferencia</field>
+            <field name="model">account.caja.diaria.transfer</field>
             <field name="arch" type="xml">
 		<form string="Transferencia de caja">
 			<header>
 				<field  name="state" widget="statusbar" clickable="1"/>
 			</header>
+            <sheet>
 			<group>
 				<field name="date" />
-				<field name="branch_id" />
+                <field name="caja_id" />
+                <field name="caja_dst" />
+                <field name="amount" />
+				<field name="notes" />
 			</group>
 			
 			<notebook>
 			</notebook>
+            <div class="oe_clear"/>
+                            <field name="notes" class="oe_inline" placeholder="Notas..."/>
+        </sheet>
+        <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
 		</form>
             </field>
         </record>
 
         <record id="account_caja_transferencia_tree" model="ir.ui.view">
-            <field name="name">Caja Transferencia Tree</field>
-            <field name="model">account.caja.transferencia</field>
+            <field name="name">Caja Transferencia</field>
+            <field name="model">account.caja.diaria.transfer</field>
             <field name="arch" type="xml">
 		<tree string="Transferencias de Caja">
 			<field name="date" />
-			<field name="branch_id" />
-			<field name="state" />
+                <field name="caja_id" />
+                <field name="caja_dst" />
+                <field name="amount" />
+				<field name="notes" />
+			    <field name="state" />
 		</tree>
             </field>
         </record>
@@ -474,7 +547,7 @@
         <record id="action_account_caja_transferencia" model="ir.actions.act_window">
             <field name="name">Cajas Transferencias</field>
             <field name="type">ir.actions.act_window</field>
-            <field name="res_model">account.caja.transferencia</field>
+            <field name="res_model">account.caja.diaria.transfer</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
         </record>
@@ -485,7 +558,62 @@
             action="action_account_caja_transferencia"
             id="menu_account_caja_transferencia"
             icon="STOCK_PRINT"/>
-     <!-- fin Transferencias -->     
+     <!-- fin Transferencias -->  
+        
+        <record id="account_box_view" model="ir.ui.view">
+            <field name="name">Caja</field>
+            <field name="model">account.box</field>
+            <field name="arch" type="xml">
+		<form string="Caja">
+			<header>
+				
+			</header>
+            <sheet>
+			<group>
+				<field name="branch_id" />
+                <field name="journal_id" />
+			</group>
+			
+			<notebook>
+			</notebook>
+            <div class="oe_clear"/>
+                            <field name="notes" class="oe_inline" placeholder="Notas..."/>
+        </sheet>
+        <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+		</form>
+            </field>
+        </record>
+
+        <record id="account_box_tree" model="ir.ui.view">
+            <field name="name">Caja</field>
+            <field name="model">account.box</field>
+            <field name="arch" type="xml">
+		<tree string="Caja">
+			    <field name="branch_id" />
+                <field name="journal_id" />
+				<field name="notes" />
+		</tree>
+            </field>
+        </record>
+
+        <record id="action_account_box" model="ir.actions.act_window">
+            <field name="name">Cajas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">account.box</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem
+            name="Cajas"
+            parent="account.menu_finance_receivables"
+            action="action_account_box"
+            id="menu_account_caja_box"
+            icon="STOCK_PRINT"/>
+
         
     </data>
 </openerp>
