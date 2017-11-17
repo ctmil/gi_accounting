@@ -482,8 +482,8 @@ class account_box_transfer(models.Model):
 	def unlink(self):
 		for transferencia in self:
 			if  self.state != 'draft':
-				raise ValidationError('No se puede borrar una transferencia ya  abierta')
-		return super(account_caja_transferencia, self).unlink()
+				raise ValidationError('No se puede borrar una transferencia ya abierta')
+		return super(account_box_transfer, self).unlink()
 	name = fields.Char('Name',track_visibility='always')
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Abierto'),('done','Realizado'),('canceled','Cancelado')],default='draft',track_visibility='always')
 	date = fields.Date('Fecha',default=date.today(),required=True)
