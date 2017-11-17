@@ -161,7 +161,7 @@ class account_caja(models.Model):
 	diaria_ids = fields.One2many(comodel_name='account.caja.diaria',inverse_name='box_id')
 	journal_id = fields.Many2one('account.journal', string='Diario de Efectivo')
 	notes = fields.Text('Notas', track_visibility='onchange')
-	
+	#box_type = fields.Selection(selection=[('mostrador','Mostrador'),('recaudadora','Recaudadora'),('orden','Orden')],default='mostrador')
 	
 	@api.multi
 	def unlink(self):
@@ -174,7 +174,7 @@ class account_caja_diaria(models.Model):
 	_name = 'account.caja.diaria'
 	_description = 'Caja Diaria'
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
-
+	_order = 'date desc, id desc'
 	@api.multi
 	def unlink(self):
 		for caja in self:
@@ -458,9 +458,10 @@ class account_caja_transferencia(models.Model):
 	caja_id = fields.Many2one('account.caja.diaria')
 	transfer_id = fields.Many2one('account.box.transfer')
 	amount = fields.Float('Amount',related='transfer_id.amount')
-	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],related='transfer_id.state')
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Abierto'),('done','Realizado'),('canceled','Cancelado')],related='transfer_id.state')
 	box_dst = fields.Many2one('account.box','Box Destination',related='transfer_id.box_dst')
 	date = fields.Date('Fecha',related='transfer_id.date')
+	notes = fields.Text('Notas',related='transfer_id.notes')
 
 	
 class account_box_transfer(models.Model):
@@ -468,25 +469,44 @@ class account_box_transfer(models.Model):
 	_description = 'Box Transfer'
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
 
+	@api.model
+	def create(self, vals):
+		sequence=self.env['ir.sequence'].get('account.box.transfer')
+		if not sequence:
+			raise ValidationError('No esta definida la secuencia')
+		if vals.get('name','/')=='/':
+			vals['name']=sequence
+		return super(account_box_transfer, self).create(vals)
+    
 	@api.multi
 	def unlink(self):
 		for transferencia in self:
 			if  self.state != 'draft':
 				raise ValidationError('No se puede borrar una transferencia ya  abierta')
 		return super(account_caja_transferencia, self).unlink()
-
-	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='always')
+	name = fields.Char('Name',track_visibility='always')
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Abierto'),('done','Realizado'),('canceled','Cancelado')],default='draft',track_visibility='always')
 	date = fields.Date('Fecha',default=date.today(),required=True)
 	box_id = fields.Many2one('account.box',string='Caja Origen')
 	box_dst = fields.Many2one('account.box',string='Caja Destino')
 	amount= fields.Float('Importe',track_visibility='onchange')
 	notes = fields.Text('Notas', track_visibility='onchange')
+	branch_id = fields.Many2one('res.branch', string='Sucursal', related='box_id.branch_id')
 
 	
 class account_caja_vale(models.Model):
 	_name = 'account.caja.vale'
 	_description = 'Caja Vale'
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
+	
+	@api.model
+	def create(self, vals):
+		sequence=self.env['ir.sequence'].get('account.caja.vale')
+		if not sequence:
+			raise ValidationError('No esta definida la secuencia')
+		if vals.get('name','/')=='/':
+			vals['name']=sequence
+		return super(account_caja_vale, self).create(vals)
 	
 	@api.multi
 	def unlink(self):
@@ -495,11 +515,13 @@ class account_caja_vale(models.Model):
 				raise ValidationError('No se puede borrar un vale abierto')
 		return super(account_caja_vale, self).unlink()
 
+	name = fields.Char('Name',track_visibility='always')
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='always')
 	date = fields.Date('Fecha',default=date.today(),required=True,track_visibility='always')
 	caja_id = fields.Many2one('account.caja.diaria',string='Caja')
-	user_id =fields.Many2one('res.users', string='Usuario', required=True, track_visibility='onchange')
+	user_id = fields.Many2one('res.users', string='Usuario', required=True, track_visibility='onchange')
 	amount= fields.Float('Importe',track_visibility='onchange')
 	notes = fields.Text('Notas', track_visibility='onchange')
+	branch_id = fields.Many2one('res.branch', string='Sucursal', related='user_id.branch_id')
 
 
