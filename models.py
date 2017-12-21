@@ -92,8 +92,48 @@ class account_invoice(models.Model):
 	is_debit_note = fields.Boolean('Nota de Debito',related='journal_id.is_debit_note')
 	sale_order_id = fields.Many2one('sale.order',string='Pedido de ventas',compute=_compute_sale_order_id)
 	
-        @api.model
-        def create(self, vals):
+	
+	@api.multi
+	def check_accounting(self):
+		check=True
+		mod_obj = self.env['ir.model.data']
+		document_number= self.partner_id.document_number
+		document_type = self.partner_id.document_type_id.id
+		responsability_id = self.partner_id.responsability_id.id
+		doc_cuit_id = self.env['afip.document_type'].search([('name','=ilike','CUIT')])[0]
+		print 'doc type?',document_type,doc_cuit_id 
+		m =False
+		if not responsability_id:
+			m = 'responsability Type is Wrong. Please verify the Afip Responsability Type before.'
+		if not m and not document_number:
+			m = 'Doc Number is wrong!. Please verify the number before continue.'
+		else:
+			if not m :
+				_number =0 
+				try:
+					_number=int(document_number)
+				except:
+					pass
+				if _number <=1000000:
+					m = 'Doc Number is wrong!. Please verify the number before continue. The value is too low!'
+		if not m and not document_type:
+			m = 'Doc Type is wrong. Please verify the doc before continue.'
+		if doc_cuit_id.id == document_type:
+			if not self.partner_id.check_vat_ar(document_number):
+				m = 'VAT Number is wrong. Please verify the number before continue.'
+		if m:
+			raise osv.except_osv(_('Error'), _(m))
+			check=False
+		return check
+        
+        
+	@api.multi
+	def invoice_validate(self):
+		if self.check_accounting():
+			return self.write({'state': 'open'})
+        
+	@api.model
+	def create(self, vals):
 		#date_invoice = vals.get('date_invoice',None)
 		#if not date_invoice:
 		#	raise ValidationError('Debe ingresar la fecha de la factura')
