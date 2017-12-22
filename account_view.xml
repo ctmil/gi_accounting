@@ -325,7 +325,7 @@
             <field name="model">account.caja.diaria</field>
             <field name="arch" type="xml">
                 <search string="Search Caja Diaria">
-                    <field name="branch_id"/>
+                    <field name="branch_id" />
                     <field name="box_id" />
                     <field name="date"/>
                     <filter icon="terp-document-new" string="Borrador" domain="[('state','=','draft')]" help="Cajas en Borrador"/>
@@ -336,6 +336,7 @@
                     <filter icon="terp-dolar_ok!" string="Con Diferencia" domain="[('amount_difference','&lt;',0),('amount_difference','&gt;',0)]" help="Cajas con Diferencias" name="unreconciled"/>
                     <separator/>
                     <field name="period_id" context="{'period_id':self}" widget="selection"/>
+                    <filter string="My Branch" domain="[('branch_id.user_ids','=', uid)]" name="search_branch_default" />
                     <group expand="0" string="Group By">
                         <filter string="Branch" icon="terp-partner" domain="[]" context="{'group_by':'branch_id'}"/>
                         <filter string="Caja" icon="terp-partner" domain="[]" context="{'group_by':'box_id'}"/>
@@ -368,6 +369,7 @@
             <field name="res_model">account.caja.diaria</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,graph</field>
+            <field name="context">{'search_branch_default': 1}</field>
             <!-- field name="target">new</field -->
             <!-- field name="view_id" ref="account_caja_diaria_view"/ -->
         </record>
@@ -472,7 +474,7 @@
             <field name="model">account.cierre.z</field>
             <field name="arch" type="xml">
                 <search string="Search Cierre Z">
-                    <field name="branch_id"/>
+                    <field name="branch_id" />
                     <field name="fecha" />
                     <field name="cierre"/>
                     <filter icon="terp-document-new" string="Borrador" domain="[('state','=','draft')]" help="Cierres en Borrador"/>
@@ -481,9 +483,9 @@
                     <separator/>
                     <filter icon="terp-document-new" string="Cerrada" domain="[('state','=','close')]" help="Cierres Completos"/>
                     <separator/>
-                    
+                    <filter string="My Branch" domain="[('branch_id.user_ids','=', uid)]" name="search_branch_default" />
                     <group expand="0" string="Group By">
-                        <filter string="Branch" icon="terp-partner" domain="[]" context="{'group_by':'branch_id'}"/>
+                        <filter string="Branch" icon="terp-partner" domain="[]"  context="{'group_by':'branch_id'}"/>
                         
                     </group>
                 </search>
@@ -496,8 +498,7 @@
             <field name="res_model">account.cierre.z</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <!-- field name="target">new</field -->
-            <!-- field name="view_id" ref="account_caja_diaria_view"/ -->
+            <field name="context">{'search_branch_default': 1}</field>
         </record>
 
         <menuitem
