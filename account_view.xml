@@ -465,6 +465,30 @@
 		</tree>
             </field>
         </record>
+        
+        
+         <record id="account_cierre_z_filter" model="ir.ui.view">
+            <field name="name">Cierre Z</field>
+            <field name="model">account.cierre.z</field>
+            <field name="arch" type="xml">
+                <search string="Search Cierre Z">
+                    <field name="branch_id"/>
+                    <field name="fecha" />
+                    <field name="cierre"/>
+                    <filter icon="terp-document-new" string="Borrador" domain="[('state','=','draft')]" help="Cierres en Borrador"/>
+                    <separator/>
+                    <filter icon="terp-document-new" string="Abierto" domain="[('state','=','open')]" help="Cierres Abiertos"/>
+                    <separator/>
+                    <filter icon="terp-document-new" string="Cerrada" domain="[('state','=','close')]" help="Cierres Completos"/>
+                    <separator/>
+                    
+                    <group expand="0" string="Group By">
+                        <filter string="Branch" icon="terp-partner" domain="[]" context="{'group_by':'branch_id'}"/>
+                        
+                    </group>
+                </search>
+            </field>
+        </record>
 
         <record id="action_account_cierre_z" model="ir.actions.act_window">
             <field name="name">Cierre Z</field>

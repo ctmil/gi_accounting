@@ -488,8 +488,8 @@ class account_cierre_z(models.Model):
 	disc_nc_monto_iva = fields.Float('Monto Iva')
 	disc_nc_monto_no_gravados = fields.Float('Monto Conceptos no Gravados')
 	disc_nc_monto_percepciones = fields.Float('Monto Percepciones')
-
-
+	_order = 'fecha desc,id desc'
+  
 class account_caja_transferencia(models.Model):
 	_name = 'account.caja.diaria.transfer'
 	_description = 'Transferencia de Cajas'
@@ -532,7 +532,7 @@ class account_box_transfer(models.Model):
 	amount= fields.Float('Importe',track_visibility='onchange')
 	notes = fields.Text('Notas', track_visibility='onchange')
 	branch_id = fields.Many2one('res.branch', string='Sucursal', related='box_id.branch_id')
-
+    
 	
 class account_caja_vale(models.Model):
 	_name = 'account.caja.vale'
