@@ -184,16 +184,21 @@
 				<button name="open_account_movimientos_caja" type="object"
 					string="Abrir" class="oe_default" states="draft" />
                 <button name="compute_account_movimientos_caja" type="object"
-					string="Compute" class="oe_default" states="draft,open" />
+					string="Compute" class="oe_default" states="open" />
+                <button name="close" type="object"
+					string="Cerrar" class="oe_default" states="open" />
+				<button name="reopen" type="object"
+					string="ReAbrir" class="oe_default" states="done" />
 				
-				<field  name="state" widget="statusbar" clickable="1"/>
+				<field  name="state" widget="statusbar" />
 			</header>
             <sheet>
 			<group>
 				<field name="date" />
-                <field name="box_id" />
+                <field name="branch_id" />
+                <field name="box_id" domain="[('branch_id','=',branch_id)]"/>
                 <field name="period_id"/>
-				<field name="branch_id" />
+				
                 <field name="amount_initial" />
 			</group>
 			

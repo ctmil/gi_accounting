@@ -227,6 +227,14 @@ class account_caja_diaria(models.Model):
 		return super(account_caja_diaria, self).unlink()
 
 	@api.one
+	def close(self):
+		self.write({'state':'done'})
+
+	@api.one
+	def reopen(self):
+		self.write({'state':'open'})
+        
+	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
 		res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
@@ -242,10 +250,10 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def compute_account_movimientos_caja(self):
 		money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id)])
-                if not money_ids:
-		    money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
-		    for val in money_res:
-			self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
+		if not money_ids:
+			money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
+			for val in money_res:
+				self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
 
 		invoice_ids=self.env['account.caja.diaria.journal'].search([('caja_id','=',self.id)])
 		for invoice in invoice_ids:
@@ -385,13 +393,22 @@ class account_caja_diaria(models.Model):
 		user = self.env['res.users'].browse(self.env.context['uid'])
 		vals['partner_id'] = user.partner_id.id
 	        return super(account_caja_diaria, self).create(vals)
-        
+
+	def _get_branch(self):
+		context = self.env.context
+		uid = context.get('uid',False)
+		if uid:
+			user = self.env['res.users'].browse(uid)
+			if user.branch_id:
+				branch_id = user.branch_id.id
+				return branch_id
+		return False        
 		
-	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
+	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='onchange')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
 	date = fields.Date('Fecha',default=date.today(),required=True,track_visibility='onchange')
-	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
-	box_id = fields.Many2one('account.box',string='Caja',)
+	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True,default=_get_branch,track_visibility='onchange')
+	box_id = fields.Many2one('account.box',string='Caja',track_visibility='onchange')
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
 	voucher_ids = fields.One2many(comodel_name='account.caja.diaria.voucher',inverse_name='caja_id')
@@ -404,7 +421,7 @@ class account_caja_diaria(models.Model):
 	amount_final = fields.Float('Final Amount')
 	period_id = fields.Many2one(compute='_compute_period', comodel_name='account.period',string='Period',store=True)
 	amount_difference = fields.Float(compute='_compute_difference', string='Difference Amount',store=True)
-	amount = fields.Float(compute='_compute_amount', string='Money Amount',store=True)
+	amount = fields.Float(compute='_compute_amount', string='Money Amount',store=True, track_visibility='always')
 	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Voucher Amount',store=True)    
 	amount_journals = fields.Float(compute='_compute_amount_journals', string='Billing Amount',store=True) 
 	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Transfers Amount',store=True)
