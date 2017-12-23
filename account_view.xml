@@ -14,6 +14,19 @@
 				<field name="fiscal_printer_id" />
 			</group>
 		</field>
+        <xpath expr="//page[@string='Users']" position="after">
+        <page string="Journals">
+            <field name="invoice_journal_ids" >
+                    <tree editable="top" create="false">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="type"/>
+                    <field name="user_id"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    </tree>
+                </field>
+            </page>
+        </xpath>       
 	    </field>
 	</record>
 
@@ -153,10 +166,12 @@
 		<field name="type" position="after">
 			<group>	
 				<field name="is_debit_note" />
+                <field name="branch_id"/>
 			</group>
 		</field>
 	    </field>
 	</record>
+    
 
 	<!-- A partir de aca -->
 
@@ -193,16 +208,13 @@
 						</tree>
 					</field>
                    <group class="oe_subtotal_footer oe_right" colspan="2" name="money_total">
-                          
-                          
-                                    
-                                    <field name="amount_initial" widget='monetary'/>
-                                    <field name="amount_voucher" widget='monetary'/>
-                                    <field name="amount_transfer" widget='monetary'/>
+                                    <field name="_amount_initial" widget='monetary' readonly="1"/>
+                                    <field name="_amount_voucher" widget='monetary'/>
+                                    <field name="_amount_transfer" widget='monetary'/>
                                     <field name="amount" widget='monetary'/>
                                     
                                     <field name="amount_difference" widget='monetary'/>
-                                    <field name="amount_final" widget='monetary'/>
+                                    
                                     
                                 
                     </group> 
@@ -226,7 +238,7 @@
 				</page>
 				<page string="Facturacion">
 					<field name="journal_ids" string="Métodos de Pago">
-						<tree string="Métodos de Pago" readonly="1" delete="false" create="false">
+						<tree string="Facturacion" readonly="1" delete="false" create="false">
 							<field name="journal_id" string="Método de Pago" />
 							<field name="amount" string="Monto" />
 						</tree>
@@ -356,9 +368,11 @@
 			<field name="branch_id" />
             <field name="box_id" />
 			<field name="state" />
+            <field name="amount_initial" />
+            <field name="_amount_voucher" />
+            <field name="_amount_transfer" />
             <field name="amount" />
-            <field name="amount_journals" />
-            <field name="amount_voucher" />
+             <field name="amount_difference" />
 	     	</tree>
             </field>
         </record>

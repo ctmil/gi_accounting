@@ -27,7 +27,8 @@ class account_journal(models.Model):
 
 
 	is_debit_note = fields.Boolean('Nota de Debito')
-
+	branch_id = fields.Many2one('res.branch',string='Branch')
+    
 
 class res_branch(models.Model):
 	_inherit = 'res.branch'
@@ -40,6 +41,7 @@ class res_branch(models.Model):
 
 	point_of_sale = fields.Integer('Punto de Venta')
 	fiscal_printer_id = fields.Many2one('fpoc.fiscal_printer',string='Impresora Fiscal')
+	invoice_journal_ids = fields.One2many(comodel_name='account.journal',inverse_name='branch_id',string='Journals',domain=[('type','in',['sale','sale_refund'])])
 
 class account_responsabilities_mapping(models.Model):
 	_name = 'account.responsabilities.mapping'
@@ -180,6 +182,7 @@ class account_invoice(models.Model):
 				if resp:
 					res['value']['journal_id'] = resp.journal_id.id
 		return res
+    
 class account_caja(models.Model):
 	_name = 'account.box'
 	_description = 'Box'
@@ -215,6 +218,7 @@ class account_caja_diaria(models.Model):
 	_description = 'Caja Diaria'
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
 	_order = 'date desc, id desc'
+	
 	@api.multi
 	def unlink(self):
 		for caja in self:
@@ -287,6 +291,7 @@ class account_caja_diaria(models.Model):
 		transfers = self.env['account.box.transfer'].search([('state','in',['done']),('date','=',self.date),('box_id','=',self.box_id.id)])
 		print 'transfers?', transfers
 		transferences={}
+		
 		for transfer in transfers:
 			self.env['account.caja.diaria.transfer'].create({'caja_id':self.id, 'transfer_id':transfer.id})
 		dailys = self.env['account.cierre.z'].search([('state','in',['close']),('fecha','=',self.date),('branch_id','=',self.branch_id.id)])
@@ -295,7 +300,6 @@ class account_caja_diaria(models.Model):
 			self.env['account.caja.diaria.close'].create({'caja_id':self.id, 
                                                  'daily_id':daily.id, 'doc_fiscales_monto': daily.doc_fiscales_monto,
                                                  'doc_nc_monto': daily.doc_nc_monto})
-
 
 
 	@api.one
@@ -312,7 +316,17 @@ class account_caja_diaria(models.Model):
 		self.amount_voucher = 0.0
 		for voucher in self.voucher_ids:
 			self.amount_voucher = self.amount_voucher + voucher.amount  
+		self._amount_voucher=self.amount_voucher
 		return self.amount_voucher
+    
+	@api.one
+	@api.depends('voucher_ids')
+	def _compute_amount_voucher_cash(self):
+		self._amount_voucher = 0.0
+		for voucher in self.voucher_ids:
+			if 'Efectivo' in voucher.journal_id.name:
+				self._amount_voucher = self._amount_voucher + voucher.amount  
+		return self._amount_voucher
     
 	@api.one
 	@api.depends('journal_ids')
@@ -320,6 +334,7 @@ class account_caja_diaria(models.Model):
 		self.amount_journals = 0.0
 		for journal in self.journal_ids:
 			self.amount_journals = self.amount_journals + journal.amount  
+		self._amount_journals=self.amount_journals
 		return self.amount_journals
 
 	@api.one
@@ -344,6 +359,15 @@ class account_caja_diaria(models.Model):
 
 	@api.one
 	@api.depends('transfer_ids')
+	def _compute_amount_transfer_negative(self):
+		self.amount_transfer = 0.0
+		for transfer in self.transfer_ids:
+			self._amount_transfer = self._amount_transfer + transfer.amount  
+		self._amount_transfer=-self._amount_transfer
+		return self._amount_transfer
+    
+	@api.one
+	@api.depends('transfer_ids')
 	def _compute_amount_transfer(self):
 		self.amount_transfer = 0.0
 		for transfer in self.transfer_ids:
@@ -351,21 +375,17 @@ class account_caja_diaria(models.Model):
 		return self.amount_transfer
 
 	@api.one
-	@api.depends('transfer_ids','money_ids','voucher_ids','journal_ids')
+	@api.depends('transfer_ids','money_ids','voucher_ids','journal_ids','amount_initial')
 	def _compute_difference(self):
 		self.amount_difference = 0.0
 		amount = 0.0
 		for money in self.money_ids:
 		    amount = amount + money.quantity * money.value  
-		amount_voucher = 0.0
-		for voucher in self.voucher_ids:
-                    if 'Efectivo' in voucher.journal_id.name:
-		        amount_voucher = amount_voucher + voucher.amount  
 		amount_transfer = 0.0
 		for transfer in self.transfer_ids:
 		    amount_transfer = amount_transfer + transfer.amount  
-                self.amount_difference = self.amount_initial -amount - amount_transfer + amount_voucher
-                return self.amount_difference
+		self.amount_difference = self.amount_initial -amount - amount_transfer + self._amount_voucher
+		return self.amount_difference
                 
 	@api.model
 	def create(self,vals):
@@ -376,7 +396,7 @@ class account_caja_diaria(models.Model):
 		
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
-	date = fields.Date('Fecha',default=date.today(),required=True)
+	date = fields.Date('Fecha',default=date.today(),required=True,track_visibility='onchange')
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
 	box_id = fields.Many2one('account.box',string='Caja',)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
@@ -386,7 +406,8 @@ class account_caja_diaria(models.Model):
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
 	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
 	vale_ids = fields.One2many(comodel_name='account.caja.vale',inverse_name='caja_id')
-	amount_initial = fields.Float('Initial Amount')
+	amount_initial = fields.Float('Initial Amount',track_visibility='onchange')
+	_amount_initial = fields.Float('Initial Amount',related='amount_initial')
 	amount_final = fields.Float('Final Amount')
 	period_id = fields.Many2one(compute='_compute_period', comodel_name='account.period',string='Period',store=True)
 	amount_difference = fields.Float(compute='_compute_difference', string='Difference Amount',store=True)
@@ -394,6 +415,10 @@ class account_caja_diaria(models.Model):
 	amount_voucher = fields.Float(compute='_compute_amount_voucher', string='Voucher Amount',store=True)    
 	amount_journals = fields.Float(compute='_compute_amount_journals', string='Billing Amount',store=True) 
 	amount_transfer = fields.Float(compute='_compute_amount_transfer', string='Transfers Amount',store=True)
+	_amount = fields.Float('Amount',related='amount')
+	_amount_voucher = fields.Float(compute='_compute_amount_voucher_cash', string='Voucher Amount',store=True) 
+	_amount_journals = fields.Float('Journal Amount',related='amount_journals') 
+	_amount_transfer = fields.Float(compute='_compute_amount_transfer_negative', string='Transfers Amount',store=True)
 	notes = fields.Text('Notas', track_visibility='onchange')
 	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
