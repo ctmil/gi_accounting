@@ -317,7 +317,7 @@ class account_caja_diaria(models.Model):
 	def _compute_amount_voucher_cash(self):
 		self._amount_voucher = 0.0
 		for voucher in self.voucher_ids:
-			if ('Efectivo' in voucher.journal_id.name) or ('cash' in voucher.journal_id.name):
+			if voucher.journal_id.code == 'EFE':
 				self._amount_voucher = self._amount_voucher + voucher.amount  
 		return self._amount_voucher
     
