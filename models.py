@@ -237,12 +237,11 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
-		res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
 		money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id)])
-		for money in money_ids:
-			money.unlink()
-		for val in res:
-			self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
+		if not money_ids:
+			money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
+			for val in money_res:
+				self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
 
 
 
