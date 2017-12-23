@@ -204,7 +204,6 @@
 							<field name="value" string="Valor" readonly="1"/>
 							<field name="quantity" string="Cantidad" />
 							<field name="amount" string="Monto" readonly="1"/>
-							
 						</tree>
 					</field>
                    <group class="oe_subtotal_footer oe_right" colspan="2" name="money_total">
@@ -362,7 +361,7 @@
             <field name="name">Caja Diaria Tree</field>
             <field name="model">account.caja.diaria</field>
             <field name="arch" type="xml">
-            <tree string="Cajas Diarias">
+            <tree string="Cajas Diarias" colors="red:amount_difference&gt;100;red:amount_difference&lt;-100;">
 			<field name="date" />
             <field name="period_id"/>
 			<field name="branch_id" />

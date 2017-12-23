@@ -261,9 +261,6 @@ class account_caja_diaria(models.Model):
 			daily.unlink()
 		#self.env['account.caja.diaria.voucher'].unlink(voucher_ids)
 		vouchers = self.env['account.voucher'].search([('state','in',['posted']),('date','=',self.date),('branch_id','=',self.branch_id.id)])
-		
-		
-		print 'vouchers?', vouchers
 		journals={}
 		for voucher in vouchers:
 			if voucher.journal_id.id in journals:
@@ -282,14 +279,10 @@ class account_caja_diaria(models.Model):
 					invoice_journals[invoice.journal_id.id]=invoice_journals[invoice.journal_id.id]+amount
 			else:
 					invoice_journals[invoice.journal_id.id]=amount
-		print 'journals?', invoice_journals
 		for journal in invoice_journals:
 			if invoice_journals[journal]!=0:
 				self.env['account.caja.diaria.journal'].create({'caja_id':self.id, 'journal_id':journal, 'amount': invoice_journals[journal]})
-		print 'invoices?', invoice_journals
-		
 		transfers = self.env['account.box.transfer'].search([('state','in',['done']),('date','=',self.date),('box_id','=',self.box_id.id)])
-		print 'transfers?', transfers
 		transferences={}
 		
 		for transfer in transfers:
@@ -324,7 +317,7 @@ class account_caja_diaria(models.Model):
 	def _compute_amount_voucher_cash(self):
 		self._amount_voucher = 0.0
 		for voucher in self.voucher_ids:
-			if 'Efectivo' in voucher.journal_id.name:
+			if ('Efectivo' in voucher.journal_id.name) or ('cash' in voucher.journal_id.name):
 				self._amount_voucher = self._amount_voucher + voucher.amount  
 		return self._amount_voucher
     
