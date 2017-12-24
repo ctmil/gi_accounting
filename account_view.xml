@@ -197,6 +197,7 @@
 				<field name="date" />
                 <field name="branch_id" />
                 <field name="box_id" domain="[('branch_id','=',branch_id)]"/>
+                <field name="manager_id"/>
                 <field name="period_id"/>
 				
                 <field name="amount_initial" />
@@ -371,6 +372,7 @@
             <field name="period_id"/>
 			<field name="branch_id" />
             <field name="box_id" />
+            <field name="manager_id" />
 			<field name="state" />
             <field name="amount_initial" />
             <field name="_amount_voucher" />

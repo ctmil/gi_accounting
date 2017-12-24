@@ -389,9 +389,14 @@ class account_caja_diaria(models.Model):
                 
 	@api.model
 	def create(self,vals):
+		box_id=vals['box_id']
+		if box_id:
+			box=self.env['account.caja.diaria'].search([('box_id','=',box_id),('state','in',('draft','open'))])
+			if box and len(box)>0:
+				raise ValidationError('No puede crear una nueva caja diaria teniendo otras en estado borrador o abierto')
 		user = self.env['res.users'].browse(self.env.context['uid'])
 		vals['partner_id'] = user.partner_id.id
-	        return super(account_caja_diaria, self).create(vals)
+		return super(account_caja_diaria, self).create(vals)
 
 	def _get_branch(self):
 		context = self.env.context
@@ -401,13 +406,26 @@ class account_caja_diaria(models.Model):
 			if user.branch_id:
 				branch_id = user.branch_id.id
 				return branch_id
-		return False        
+		return False
+    
+	def _get_user(self):
+		context = self.env.context
+		uid = context.get('uid',False)
+		return uid
+    
+	@api.one
+	@api.depends('box_id')
+	def _get_initial(self):
+		box_id = self.box_id.id
+		if box_id:
+			box=self.env['account.caja.diaria'].search([('box_id','=',box_id),('state','=','close')],limit=1,order='id desc')
+			self.initial=box.amount
 		
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='onchange')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
 	date = fields.Date('Fecha',default=date.today(),required=True,track_visibility='onchange')
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True,default=_get_branch,track_visibility='onchange')
-	box_id = fields.Many2one('account.box',string='Caja',track_visibility='onchange')
+	box_id = fields.Many2one('account.box',string='Caja',track_visibility='onchange',required=True)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
 	voucher_ids = fields.One2many(comodel_name='account.caja.diaria.voucher',inverse_name='caja_id')
@@ -415,6 +433,7 @@ class account_caja_diaria(models.Model):
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
 	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
 	vale_ids = fields.One2many(comodel_name='account.caja.vale',inverse_name='caja_id')
+	manager_id = fields.Many2one('res.users',string='Manager',related='create_uid',store=True,track_visibility='onchange')
 	amount_initial = fields.Float('Initial Amount',track_visibility='onchange')
 	_amount_initial = fields.Float('Initial Amount',related='amount_initial')
 	amount_final = fields.Float('Final Amount')
