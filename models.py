@@ -421,7 +421,7 @@ class account_caja_diaria(models.Model):
 			box=self.env['account.caja.diaria'].search([('box_id','=',box_id),('state','=','close')],limit=1,order='id desc')
 			self.initial=box.amount
 			return self.initial
-	return 0
+		return 0
 		
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='onchange')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
