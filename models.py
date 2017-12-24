@@ -400,17 +400,17 @@ class account_caja_diaria(models.Model):
 
 	def _get_branch(self):
 		context = self.env.context
-		uid = context.get('uid',False)
+		uid = context.get('uid',None)
 		if uid:
 			user = self.env['res.users'].browse(uid)
 			if user.branch_id:
 				branch_id = user.branch_id.id
 				return branch_id
-		return False
+		return None
     
 	def _get_user(self):
 		context = self.env.context
-		uid = context.get('uid',False)
+		uid = context.get('uid',None)
 		return uid
     
 	#@api.one
