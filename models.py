@@ -320,7 +320,7 @@ class account_caja_diaria(models.Model):
 		return self.amount_voucher
     
 	@api.one
-	@api.depends('voucher_ids')
+	@api.depends('transfer_ids','money_ids','voucher_ids','journal_ids','amount_initial')
 	def _compute_amount_voucher_cash(self):
 		self._amount_voucher = 0.0
 		for voucher in self.voucher_ids:
