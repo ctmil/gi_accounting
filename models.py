@@ -416,7 +416,7 @@ class account_caja_diaria(models.Model):
 	@api.one
 	@api.depends('box_id')
 	def _get_initial(self):
-		box_id = self.box_id.id
+		box_id = self.box_id and self.box_id.id
 		if box_id:
 			box=self.env['account.caja.diaria'].search([('box_id','=',box_id),('state','=','close')],limit=1,order='id desc')
 			self.initial=box.amount
