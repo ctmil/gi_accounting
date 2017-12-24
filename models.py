@@ -405,7 +405,6 @@ class account_caja_diaria(models.Model):
 			if user.branch_id:
 				branch_id = user.branch_id.id
 				return branch_id
-		return None
     
 	def _get_user(self):
 		context = self.env.context
