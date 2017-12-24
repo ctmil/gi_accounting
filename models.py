@@ -201,8 +201,10 @@ class account_caja(models.Model):
 	name = fields.Char(compute='_box_name_get', string='Name', store=True)
 	boxname = fields.Char('Nombre', track_visibility='onchange')
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True)
+	account_id = fields.Many2one('account.account',string='Account')
 	diaria_ids = fields.One2many(comodel_name='account.caja.diaria',inverse_name='box_id')
 	journal_id = fields.Many2one('account.journal', string='Diario de Efectivo')
+	journal_transfer_id = fields.Many2one('account.journal', string='Diario de Transferencia')
 	notes = fields.Text('Notas', track_visibility='onchange')
 	#box_type = fields.Selection(selection=[('mostrador','Mostrador'),('recaudadora','Recaudadora'),('orden','Orden')],default='mostrador')
 	
@@ -580,14 +582,75 @@ class account_box_transfer(models.Model):
 			if  self.state != 'draft':
 				raise ValidationError('No se puede borrar una transferencia ya abierta')
 		return super(account_box_transfer, self).unlink()
-	name = fields.Char('Name',track_visibility='always')
+
+	@api.one
+	def cancel(self):
+		self.move_id.button_cancel()
+		self.move_id.unlink()
+		self.state='canceled'
+		
+	@api.one
+	def draft(self):
+		self.state='draft'
+		
+	@api.one
+	def _get_branch(self):
+		context = self.env.context
+		uid = context.get('uid',None)
+		if uid:
+			user = self.env['res.users'].browse(uid)
+			if user.branch_id:
+				branch_id = user.branch_id and user.branch_id.id or None
+				return branch_id
+		return None
+    
+	@api.one
+	def validate(self):
+		vals ={}
+		vals['branch_id']=self.box_id.branch_id.id
+		vals['journal_id']=self.box_id.journal_transfer_id.id
+		args = [('date_start', '<=' ,self.date), ('date_stop', '>=', self.date)]
+		context = self.env.context
+		if context.get('company_id', False):
+			args.append(('company_id', '=', context['company_id']))
+		else:
+			uid = context.get('uid',False)
+			user = None
+			if uid:
+				user = self.env['res.users'].browse(uid)
+				company_id = user.company_id.id
+				args.append(('company_id', '=', company_id))
+		period_ids = self.env['account.period'].search(args)
+		vals['period_id']=period_ids and period_ids[0].id
+		vals['date']=self.date
+		vals['ref']=self.name
+		move_id=self.env['account.move'].create(vals)
+		line_vals={}
+		line_vals['name']='Transferencia'
+		line_vals['account_id']=self.box_dst.account_id.id
+		line_vals['credit']=self.amount
+		line_vals['move_id']=move_id.id
+		self.env['account.move.line'].create(line_vals)
+		line_vals={}
+		line_vals['name']='Transferencia'
+		line_vals['account_id']=self.box_id.account_id.id
+		line_vals['debit']=self.amount
+		line_vals['move_id']=move_id.id
+		self.env['account.move.line'].create(line_vals)
+		self.state='done'
+		self.move_id=move_id
+		move_id.post()
+
+    
+	name = fields.Char('Name',track_visibility='always',readonly=True, states={'draft': [('readonly', False)]})
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Abierto'),('done','Realizado'),('canceled','Cancelado')],default='draft',track_visibility='always')
-	date = fields.Date('Fecha',default=date.today(),required=True)
-	box_id = fields.Many2one('account.box',string='Caja Origen')
-	box_dst = fields.Many2one('account.box',string='Caja Destino')
-	amount= fields.Float('Importe',track_visibility='onchange')
+	date = fields.Date('Fecha',default=date.today(),required=True,readonly=True, states={'draft': [('readonly', False)]})
+	box_id = fields.Many2one('account.box',string='Caja Origen',readonly=True, required=True,states={'draft': [('readonly', False)]})
+	box_dst = fields.Many2one('account.box',string='Caja Destino',readonly=True, required=True,states={'draft': [('readonly', False)]})
+	amount= fields.Float('Importe',track_visibility='onchange',readonly=True, required=True,states={'draft': [('readonly', False)]})
 	notes = fields.Text('Notas', track_visibility='onchange')
-	branch_id = fields.Many2one('res.branch', string='Sucursal', related='box_id.branch_id')
+	branch_id = fields.Many2one('res.branch', string='Sucursal', related='box_id.branch_id', store=True, states={'draft': [('readonly', False)]})
+	move_id = fields.Many2one('account.move', string='Asiento',readonly=True)
     
 	
 class account_caja_vale(models.Model):

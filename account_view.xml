@@ -538,7 +538,13 @@
             <field name="arch" type="xml">
 		<form string="Transferencia de caja">
 			<header>
-				<field  name="state" widget="statusbar" clickable="1"/>
+                <button name="validate" type="object"
+					string="Validar" class="oe_default" states="draft" />
+                <button name="cancel" type="object"
+					string="Cancelar" class="oe_default" states="done" />
+                <button name="draft" type="object"
+					string="Borrador" class="oe_default" states="canceled" />
+				<field  name="state" widget="statusbar" />
 			</header>
             <sheet>
                 <div class="oe_title">
@@ -550,10 +556,11 @@
 			<group>
                 
                 <field name="date" />
-                <field name="box_id" />
-                <field name="box_dst" />
+                <field name="branch_id" />
+                <field name="box_id" domain="[('branch_id','=',branch_id)]"/>
+                <field name="box_dst" domain="[('branch_id','=',branch_id)]"/>
 				<field name="amount" />
-                
+                <field name="move_id" class="oe_inline" readonly="1"/>
 			</group>
 			
 			<notebook>
@@ -625,6 +632,8 @@
 			<group>
                 <field name="branch_id" />
                 <field name="journal_id" />
+                <field name="journal_transfer_id" />
+                <field name="account_id"/>
 			</group>
 			
 			<notebook>
