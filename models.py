@@ -411,7 +411,8 @@ class account_caja_diaria(models.Model):
 		uid = context.get('uid',None)
 		if uid:
 			user = self.env['res.users'].browse(uid)
-			return user.id
+			if user:
+				return user.id
 		return None    
 	#@api.one
 	#@api.depends('box_id')
@@ -435,7 +436,7 @@ class account_caja_diaria(models.Model):
 	money_ids = fields.One2many(comodel_name='account.caja.diaria.money',inverse_name='caja_id')
 	close_ids = fields.One2many(comodel_name='account.caja.diaria.close',inverse_name='caja_id')
 	vale_ids = fields.One2many(comodel_name='account.caja.vale',inverse_name='caja_id')
-	manager_id = fields.Many2one('res.users',string='Manager',track_visibility='onchange',required=True)
+	manager_id = fields.Many2one('res.users',string='Manager',track_visibility='onchange',default=_get_user,required=True)
 	amount_initial = fields.Float('Initial Amount',track_visibility='onchange')
 	_amount_initial = fields.Float('Initial Amount',related='amount_initial')
 	amount_final = fields.Float('Final Amount')
