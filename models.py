@@ -593,14 +593,13 @@ class account_box_transfer(models.Model):
 	def draft(self):
 		self.state='draft'
 		
-	@api.one
 	def _get_branch(self):
 		context = self.env.context
 		uid = context.get('uid',None)
 		if uid:
 			user = self.env['res.users'].browse(uid)
 			if user.branch_id:
-				branch_id = user.branch_id and user.branch_id.id or None
+				branch_id = user.branch_id.id
 				return branch_id
 		return None
     
