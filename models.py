@@ -395,7 +395,6 @@ class account_caja_diaria(models.Model):
 			if box and len(box)>0:
 				raise ValidationError('No puede crear una nueva caja diaria teniendo otras en estado borrador o abierto')
 		user = self.env['res.users'].browse(self.env.context['uid'])
-		vals['partner_id'] = user.partner_id.id
 		return super(account_caja_diaria, self).create(vals)
 
 	def _get_branch(self):
@@ -411,7 +410,9 @@ class account_caja_diaria(models.Model):
 	def _get_user(self):
 		context = self.env.context
 		uid = context.get('uid',None)
-		return uid
+		if uid:
+			user = self.env['res.users'].browse(uid)
+			return user.id
     
 	#@api.one
 	#@api.depends('box_id')
