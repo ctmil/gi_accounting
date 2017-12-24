@@ -649,7 +649,7 @@ class account_box_transfer(models.Model):
 	box_dst = fields.Many2one('account.box',string='Caja Destino',readonly=True, required=True,states={'draft': [('readonly', False)]})
 	amount= fields.Float('Importe',track_visibility='onchange',readonly=True, required=True,states={'draft': [('readonly', False)]})
 	notes = fields.Text('Notas', track_visibility='onchange')
-	branch_id = fields.Many2one('res.branch', string='Sucursal', related='box_id.branch_id', store=True, states={'draft': [('readonly', False)]})
+	branch_id = fields.Many2one('res.branch', string='Sucursal', default=_get_branch, states={'draft': [('readonly', False)]})
 	move_id = fields.Many2one('account.move', string='Asiento',readonly=True)
     
 	
