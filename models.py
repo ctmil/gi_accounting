@@ -404,6 +404,7 @@ class account_caja_diaria(models.Model):
 			if user.branch_id:
 				branch_id = user.branch_id.id
 				return branch_id
+		return None
     
 	def _get_user(self):
 		context = self.env.context
@@ -411,7 +412,7 @@ class account_caja_diaria(models.Model):
 		if uid:
 			user = self.env['res.users'].browse(uid)
 			return user.id
-    
+		return None    
 	#@api.one
 	#@api.depends('box_id')
 	#def _get_initial(self):
@@ -425,7 +426,7 @@ class account_caja_diaria(models.Model):
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='onchange')
 	partner_id = fields.Many2one('res.partner',string='Cliente')
 	date = fields.Date('Fecha',default=date.today(),required=True,track_visibility='onchange')
-	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True,track_visibility='onchange')
+	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True,default=_get_branch,track_visibility='onchange')
 	box_id = fields.Many2one('account.box',string='Caja',track_visibility='onchange',required=True)
 	line_ids = fields.One2many(comodel_name='account.caja.diaria.journal.lineas',inverse_name='caja_id')
 	journal_ids = fields.One2many(comodel_name='account.caja.diaria.journal',inverse_name='caja_id')
