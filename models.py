@@ -422,6 +422,7 @@ class account_caja_diaria(models.Model):
 			self.initial=box.amount
 		
 	state = fields.Selection(selection=[('draft','Borrador'),('open','Open'),('done','Cerrado')],default='draft',track_visibility='onchange')
+	partner_id = fields.Many2one('res.partner',string='Cliente')
 	date = fields.Date('Fecha',default=date.today(),required=True,track_visibility='onchange')
 	branch_id = fields.Many2one('res.branch',string='Sucursal',required=True,default=_get_branch,track_visibility='onchange')
 	box_id = fields.Many2one('account.box',string='Caja',track_visibility='onchange',required=True)
@@ -447,7 +448,7 @@ class account_caja_diaria(models.Model):
 	_amount_journals = fields.Float('Journal Amount',related='amount_journals') 
 	_amount_transfer = fields.Float(compute='_compute_amount_transfer_negative', string='Transfers Amount',store=True)
 	notes = fields.Text('Notas', track_visibility='onchange')
-	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id,box_id)','Caja ya existe')]
+	_sql_constraints = [('account_caja_diaria','UNIQUE (date,branch_id)','Caja ya existe')]
 
 class account_caja_diaria_journal(models.Model):
 	_name = 'account.caja.diaria.journal'
