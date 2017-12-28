@@ -108,7 +108,7 @@ class account_invoice(models.Model):
 		if not responsability_id:
 			m = 'responsability Type is Wrong. Please verify the Afip Responsability Type before.'
 		if not m and not document_number:
-			m = 'Doc Number is wrong!. Please verify the number before continue.'
+			m = 'Doc Number is wrong!. Please verify the number before cont##inue.'
 		else:
 			if not m :
 				_number =0 
@@ -239,10 +239,10 @@ class account_caja_diaria(models.Model):
 	@api.one
 	def open_account_movimientos_caja(self):
 		self.state = 'open'
-		money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id)])
-		if not money_ids:
-			money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
-			for val in money_res:
+		money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0]
+		for val in money_res:
+			money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id),('value','=', val)])
+			if not money_ids:
 				self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
 
 
@@ -250,10 +250,10 @@ class account_caja_diaria(models.Model):
 
 	@api.one
 	def compute_account_movimientos_caja(self):
-		money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id)])
-		if not money_ids:
-			money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0]
-			for val in money_res:
+		money_res=[0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0]
+		for val in money_res:
+			money_ids=self.env['account.caja.diaria.money'].search([('caja_id','=',self.id),('value','=', val)])
+			if not money_ids:
 				self.env['account.caja.diaria.money'].create({'value':val,'caja_id':self.id})
 
 		invoice_ids=self.env['account.caja.diaria.journal'].search([('caja_id','=',self.id)])
