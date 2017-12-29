@@ -386,7 +386,7 @@ class account_caja_diaria(models.Model):
 		amount_transfer = 0.0
 		for transfer in self.transfer_ids:
 		    amount_transfer = amount_transfer + transfer.amount  
-		self.amount_difference =  amount -self.amount_initial - amount_transfer + self._amount_voucher
+		self.amount_difference =  amount - (self.amount_initial + amount_transfer + self._amount_voucher)
 		return self.amount_difference
                 
 	@api.model
