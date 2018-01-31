@@ -623,6 +623,10 @@ class account_box_transfer(models.Model):
 		vals['period_id']=period_ids and period_ids[0].id
 		vals['date']=self.date
 		vals['ref']=self.name
+		caja_obj=self.env['account.caja.diaria']
+		caja_id=caja_obj.search([('date','=',self.date),('state','in',('draft','open'))])
+		if not caja_id:
+			raise ValidationError('No hay cajas abiertas en esta fecha')
 		move_id=self.env['account.move'].create(vals)
 		line_vals={}
 		line_vals['name']='Transferencia'
